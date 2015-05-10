@@ -38,6 +38,11 @@ namespace Singleton
 		/// <param name="objectToCheck">Object to check.</param>
 		public Vector3 GetSize(GameObject objectToCheck)
 		{
+            if (objectToCheck == null)
+            {
+                Debug.LogError("Object to check is null!");
+            }
+
 			Renderer renderer = objectToCheck.tag == "RenderObject" 
 				? objectToCheck.GetComponent<Renderer>() 
 				: objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
@@ -127,8 +132,8 @@ namespace Singleton
 
 			var infos = XMLSingleton.Instance.BlockInfos[lastTransition.name];
 			var instance = fromOrientation == LevelOrientation.Vertical 
-				? PrefabSingleton.Instance.Create(areaInfo.VFloorDoor, null)
-				: PrefabSingleton.Instance.Create(areaInfo.HBlock, null);
+				? PrefabSingleton.Instance.Create(areaInfo.VFloorDoor)
+				: PrefabSingleton.Instance.Create(areaInfo.HBlock);
 			instance.transform.parent = parent;
 
 			Debug.Log("From: " + fromOrientation + " To: Vertical   Last Trans: " + lastTransition.name + "   New block: " + instance.name);
@@ -178,8 +183,8 @@ namespace Singleton
 			
 			var infos = XMLSingleton.Instance.BlockInfos[lastTransition.name];
 			var instance = fromOrientation == LevelOrientation.Vertical 
-				? PrefabSingleton.Instance.Create(areaInfo.HTransition, null)
-				: PrefabSingleton.Instance.Create(areaInfo.HBlock, null);
+				? PrefabSingleton.Instance.Create(areaInfo.HTransition)
+				: PrefabSingleton.Instance.Create(areaInfo.HBlock);
 			instance.transform.parent = parent;
 			
 			Debug.Log("From: " + fromOrientation + " To: Horinzontal   Last Trans: " + lastTransition.name + "   New block: " + instance.name);

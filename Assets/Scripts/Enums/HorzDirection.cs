@@ -5,6 +5,8 @@ namespace Enums
 	public enum HorzDirection
 	{
 		Left = 0,
-		Right = 1
+		Right = 1,
+        Forward = 2,
+        Backwards = 3
 	}
 }

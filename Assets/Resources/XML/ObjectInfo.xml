@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ObjectInfos>
+	<ObjectInfo>
+		<Key>RectStandBlockPrefab</Key>
+		<ReduceSide>X</ReduceSide>
+	</ObjectInfo>
+	<ObjectInfo>
+		<Key>TorchPrefab</Key>
+		<ReduceSide>X</ReduceSide>
+	</ObjectInfo>
+</ObjectInfos>

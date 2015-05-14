@@ -12,6 +12,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using Singleton;
+using Assets.Scripts.Blocks;
+using Assets.Scripts.Enums;
 
 namespace Singletons
 {
@@ -171,5 +173,72 @@ namespace Singletons
 				GameObject.Destroy(heart);
 			}
 		}
+
+        /// <summary>
+        /// Create an empty GO at a specific point with a given text.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="rotation"></param>
+        public void CreateDebugGOAtPosition(string text, Vector3 position)
+        {
+            GameObject empty = new GameObject();
+            empty.transform.position = position;
+            empty.transform.name = text;
+        }
+
+        /// <summary>
+        /// Gets a Wall Descriptor
+        /// </summary>
+        /// <param name="block"></param>
+        /// <param name="specificWall"></param>
+        /// <returns></returns>
+        public WallDescriptor GetWallDescription(GameObject block, int specificWall = 1)
+        {
+            if (block == null)
+            {
+                Debug.LogError("block was NULL - no Walldescriptor!");
+                return null;
+            }
+
+            var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
+            return wallDescriptors.First(wd => wd.gameObject.name == String.Concat("Wall", specificWall.ToString()));
+        }
+
+        /// <summary>
+        /// Gets a Wall Descriptor
+        /// </summary>
+        /// <param name="block"></param>
+        /// <param name="specificWall"></param>
+        /// <returns></returns>
+        public IEnumerable<WallDescriptor> GetAllDoorWalls(GameObject block)
+        {
+            if (block == null)
+            {
+                Debug.LogError("block was NULL - no Walldescriptor!");
+                return null;
+            }
+
+            var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
+            
+            return wallDescriptors.Where(wd => wd.Descriptor == WallDescription.Door).ToList();
+        }
+
+        /// <summary>
+        /// Gets a Wall Descriptor
+        /// </summary>
+        /// <param name="block"></param>
+        /// <param name="specificWall"></param>
+        /// <returns></returns>
+        public IEnumerable<WallDescriptor> GetAllBlockedWalls(GameObject block)
+        {
+            if (block == null)
+            {
+                Debug.LogError("block was NULL - no Walldescriptor!");
+                return null;
+            }
+
+            var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
+            return wallDescriptors.Where(wd => wd.Descriptor != WallDescription.Wall).ToList();
+        }
 	}
 }

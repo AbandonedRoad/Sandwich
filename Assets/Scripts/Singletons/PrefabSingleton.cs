@@ -24,6 +24,7 @@ namespace Singleton
 		public GameObject HorzRedBricksDoorPrefab {get; private set;}
 		public GameObject HorzRedBricksExitPrefab {get; private set;}
 		public GameObject HorzRedBricksEnd {get; private set;}
+        public GameObject HorzRedBricksCornerPrefab { get; private set; }
 
 		public GameObject MetalPipeRoof {get; private set;}
 		public GameObject RectStandBlock {get; private set;}
@@ -95,6 +96,7 @@ namespace Singleton
 			HorzRedBricksEnd = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksEndPrefab") as GameObject;
 			HorzRedBricksDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksDoorPrefab") as GameObject;
 			HorzRedBricksExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksExitPrefab") as GameObject;
+            HorzRedBricksCornerPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksCornerPrefab") as GameObject;
 
 			// Roof
 			MetalPipeRoof = Resources.Load("Prefabs/LevelBlocks/FliesenCeilingPrefab") as GameObject;
@@ -150,7 +152,8 @@ namespace Singleton
 					HFloor = HorzRedBricks,
 					HBlock = HorzRedBricks,
 					HTransition = HorzRedBricksDoorPrefab,
-					HExit = HorzRedBricksExitPrefab
+					HExit = HorzRedBricksExitPrefab,
+                    HCorner = HorzRedBricksCornerPrefab
 				};
 			}
 
@@ -174,6 +177,8 @@ namespace Singleton
             }
             
 			result.name = result.name.Substring(0, result.name.Length - 7);
+
+            CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock = result;
 
 			return result;		
 		}

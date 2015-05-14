@@ -32,7 +32,6 @@ namespace LevelCreation
 			int levelAreaAmount = Random.Range(3, 10);
 			TransitionInfo transInfo = new TransitionInfo();
 			AreaInfos areaInfos = null;
-			LevelOrientation lastOrientation = LevelOrientation.Vertical;
 			for (int i = 0; i < levelAreaAmount; i++) 
 			{
 				LevelOrientation orientation = (LevelOrientation)Random.Range(0, 2);
@@ -41,22 +40,23 @@ namespace LevelCreation
 				int areaCount = Random.Range(5, 7);
 				if (orientation == LevelOrientation.Vertical)
 				{
-					// This is the object, where the last transtion to a next level begins.
-					GameObject transitionObject = CalculationSingleton.Instance.GetStartForVerticalTransition(transInfo.TransitionObject, areaInfos, lastOrientation);
-
+                    CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation = LevelOrientation.Vertical;
                     // If the level is just starting, we need to go up here!
-					var direction = transInfo.TransitionObject == null
-						? VertDirection.Up
-						: (VertDirection)Random.Range(0, 2);
-					transInfo = CreateVerticalArea(areaCount, areaInfos, transitionObject, i == levelAreaAmount - 1, direction);
-					lastOrientation = LevelOrientation.Vertical;
+                    CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection = transInfo.TransitionObject == null
+                        ? VertDirection.Up
+                        : (VertDirection)Random.Range(0, 2);
+
+					// This is the object, where the last transtion to a next level begins.
+					GameObject transitionObject = CalculationSingleton.Instance.GetStartForVerticalTransition(transInfo.TransitionObject, areaInfos);
+					transInfo = CreateVerticalArea(areaCount, areaInfos, transitionObject, i == levelAreaAmount - 1);
 				}
 				else
 				{
-					GameObject transitionObject = CalculationSingleton.Instance.GetStartForHorintzalTransition(transInfo.TransitionObject, areaInfos, lastOrientation);
-					var direction = (HorzDirection)Random.Range(0, 3);
-					transInfo = CreateHorizontalArea(areaCount, areaInfos, transitionObject, i == levelAreaAmount - 1, direction);
-					lastOrientation = LevelOrientation.Horizontal;
+                    CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation = LevelOrientation.Horizontal;
+                    CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection = (HorzDirection)Random.Range(0, 3);
+
+					GameObject transitionObject = CalculationSingleton.Instance.GetStartForHorintzalTransition(transInfo.TransitionObject, areaInfos);
+					transInfo = CreateHorizontalArea(areaCount, areaInfos, transitionObject, i == levelAreaAmount - 1);
 				}
 			}
 		}
@@ -65,7 +65,7 @@ namespace LevelCreation
 		/// Creates the level blocks.
 		/// </summary>
 		/// <param name="blockAmount">Block amount.</param>
-		private TransitionInfo CreateHorizontalArea(int areaCount, AreaInfos areaInfos, GameObject transitonBlock, bool isLastAreaBlock, HorzDirection horzDirection)
+		private TransitionInfo CreateHorizontalArea(int areaCount, AreaInfos areaInfos, GameObject transitonBlock, bool isLastAreaBlock)
 		{
 			TransitionInfo result = new TransitionInfo();
 			GameObject endBlock = null;
@@ -84,15 +84,17 @@ namespace LevelCreation
 				// Create block
                 float x = 0;
                 float z = 0;
-                if (horzDirection == HorzDirection.Right || horzDirection == HorzDirection.Left)
+                if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
+                    || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left)
                 {
-                    int dirMulti = horzDirection == HorzDirection.Left ? 1 : -1;
+                    int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left ? 1 : -1;
                     x = transitonBlock == null ? (i * blockSize.x) * dirMulti : (transitonBlock.transform.position.x + (i * blockSize.x)) * dirMulti;
                     z = transitonBlock == null ? 0 : transitonBlock.transform.position.z;
                 }
-                else if (horzDirection == HorzDirection.Forward || horzDirection == HorzDirection.Backwards)
+                else if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
+                    || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
                 {
-                    int dirMulti = horzDirection == HorzDirection.Forward ? 1 : -1;
+                    int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward ? 1 : -1;
                     x = transitonBlock == null ? 0 : transitonBlock.transform.position.x;
                     z = transitonBlock == null ? (i * blockSize.z) * dirMulti : (transitonBlock.transform.position.z + (i * blockSize.z)) * dirMulti;
                 }
@@ -100,7 +102,8 @@ namespace LevelCreation
 				Vector3 pos = new Vector3(x, transitonBlock == null ? 0 : transitonBlock.transform.position.y, z);
 
                 // Rotate by 90° in we are going backwards or forwards
-                Vector3? rot = (horzDirection == HorzDirection.Forward || horzDirection == HorzDirection.Backwards)
+                Vector3? rot = (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
+                    || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
                     ? new Vector3(0, 90, 0)
                     : (Vector3?)null;
 				
@@ -136,7 +139,7 @@ namespace LevelCreation
 			}
 
 			// Decide which object to place - do not place on ground floor.
-			PlaceHorinzalContent(transitonBlock, endBlock, horzDirection);
+			PlaceHorinzalContent(transitonBlock, endBlock);
 
 			// Return result
 			return result;
@@ -146,9 +149,9 @@ namespace LevelCreation
 		/// Creates the level blocks.
 		/// </summary>
 		/// <param name="blockAmount">Block amount.</param>
-		private TransitionInfo CreateVerticalArea(int areaCount, AreaInfos areaInfos, GameObject transitonBlock, bool isLastAreaBlock, VertDirection direction)
+		private TransitionInfo CreateVerticalArea(int areaCount, AreaInfos areaInfos, GameObject transitonBlock, bool isLastAreaBlock)
 		{
-			int dirMulti = direction == VertDirection.Up ? 1 : -1;
+			int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection == VertDirection.Up ? 1 : -1;
 			TransitionInfo result = new TransitionInfo();
 			GameObject endBlock = null;
 			_actualArea = new List<GameObject>();
@@ -215,27 +218,35 @@ namespace LevelCreation
 		/// Places the stand blocks.
 		/// </summary>
 		/// <param name="blockAmount">Block amount.</param>
-		private void PlaceVerticalContent(GameObject startArea, GameObject endArea)
+        private void PlaceVerticalContent(GameObject startArea, GameObject endArea)
 		{
 			float y = startArea.transform.position.y;
 			int lastLevelBlock = 0;
-
+            int counter = 0;
+            
 			while(true)
 			{
+                if (counter > 100)
+                {
+                    Debug.Log(String.Concat("Counter is more than ", counter, "! Abort"));
+                    break;
+                }
+                counter++;
+
 				if (y > endArea.transform.position.y)
 				{
 					// Reached the top - break
 					break;
 				}
-				var actualLevelBlock = _actualArea.OrderByDescending(bk => bk.transform.position.y).FirstOrDefault(bk => y >= bk.transform.position.y);
-				y += CalculationSingleton.Instance.JumpDistance;
+
+                var actualLevelBlock = CalculationSingleton.Instance.GetBlockFromArea(_actualArea, y);
+                // y += direction == VertDirection.Up ? CalculationSingleton.Instance.JumpDistance : CalculationSingleton.Instance.JumpDistance * -1;
+                y += CalculationSingleton.Instance.JumpDistance;
 				
 				List<int> compareList = new List<int> { 0, 1, 2, 3};
-				BlockInfo blockInfos = null;
 				int doorWall = -1;
 				if (actualLevelBlock != null)
 				{
-					blockInfos = XMLSingleton.Instance.BlockInfos[actualLevelBlock.name];
 					if (actualLevelBlock.transform.rotation.y == 180)
 					{
 						// If we have turned the object by 180° we need to make sure to adpt the wall where the hole is.
@@ -265,8 +276,8 @@ namespace LevelCreation
 							break;
 						}
 					}
-					
-					var pos = CalculationSingleton.Instance.GetPositionForObject(startArea, standBlock, wall, ObjectOrientation.Randomize);
+
+                    var pos = CalculationSingleton.Instance.GetPositionForObject(actualLevelBlock, standBlock, wall, ObjectOrientation.Randomize);
 					standBlock.transform.position = new Vector3(pos.Position.x, y, pos.Position.z);
 					standBlock.transform.rotation = pos.Rotation;
 					standBlock.transform.parent = PrefabSingleton.Instance.StandBlockParent;
@@ -277,7 +288,7 @@ namespace LevelCreation
 				if (actualLevelBlock != null && actualLevelBlock.GetHashCode() != lastLevelBlock && lastLevelBlock != 0)
 				{
 					IEnumerable<int> unusedWall = compareList.Except(wallsUsed);
-					CreateLights(actualLevelBlock, unusedWall.First(), LevelOrientation.Vertical);
+					CreateLights(actualLevelBlock, unusedWall.First());
 				}
 				lastLevelBlock = actualLevelBlock != null ? actualLevelBlock.GetHashCode() : 0;
 			}
@@ -287,9 +298,10 @@ namespace LevelCreation
 		/// Places the stand blocks.
 		/// </summary>
 		/// <param name="blockAmount">Block amount.</param>
-		private void PlaceHorinzalContent(GameObject startArea, GameObject endArea, HorzDirection horiziontalDirection)
+		private void PlaceHorinzalContent(GameObject startArea, GameObject endArea)
 		{
-            float xOrz = (horiziontalDirection == HorzDirection.Left || horiziontalDirection == HorzDirection.Right)
+            float xOrz = (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left
+                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right)
                 ? startArea.transform.position.x
                 : startArea.transform.position.z;
             int counter = 0;
@@ -303,38 +315,47 @@ namespace LevelCreation
                 }
                 counter++;
 
-				if ((horiziontalDirection == HorzDirection.Left && xOrz > endArea.transform.position.x)
-				    || (horiziontalDirection == HorzDirection.Right && xOrz < endArea.transform.position.x)
-                    || (horiziontalDirection == HorzDirection.Forward && xOrz > endArea.transform.position.z)
-                    || (horiziontalDirection == HorzDirection.Backwards && xOrz < endArea.transform.position.z))
+                if ((CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left && xOrz > endArea.transform.position.x)
+                    || (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right && xOrz < endArea.transform.position.x)
+                    || (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward && xOrz > endArea.transform.position.z)
+                    || (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards && xOrz < endArea.transform.position.z))
 				{
 					// Reached the end - break
 					break;
 				}
 
                 GameObject actualLevelBlock;
-                switch (horiziontalDirection)
+                switch (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
                 {
                     case HorzDirection.Left:
                     case HorzDirection.Right:
                         actualLevelBlock = _actualArea.OrderByDescending(bk => bk.transform.position.x).FirstOrDefault(bk => xOrz >= bk.transform.position.x);
-                        xOrz += horiziontalDirection == HorzDirection.Left
+                        xOrz += CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left
                             ? CalculationSingleton.Instance.GetSize(actualLevelBlock).x
                             : CalculationSingleton.Instance.GetSize(actualLevelBlock).x * -1;
                         break;
                     case HorzDirection.Forward:
                     case HorzDirection.Backwards:
                         actualLevelBlock = _actualArea.OrderByDescending(bk => bk.transform.position.z).FirstOrDefault(bk => xOrz >= bk.transform.position.z);
-                        xOrz += horiziontalDirection == HorzDirection.Forward
+                        xOrz += CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
                             ? CalculationSingleton.Instance.GetSize(actualLevelBlock).z
                             : CalculationSingleton.Instance.GetSize(actualLevelBlock).z * -1;
                         break;
                     default:
                         throw new ArgumentException("Type not supported");
                 }
-                
-				CreateLights(actualLevelBlock, 1, LevelOrientation.Horizontal);
-				CreateLights(actualLevelBlock, 3, LevelOrientation.Horizontal);
+
+                if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left
+                    || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right)
+                {
+                    CreateLights(actualLevelBlock, 1);
+                    CreateLights(actualLevelBlock, 3);
+                }
+                else
+                {
+                    CreateLights(actualLevelBlock, 0);
+                    CreateLights(actualLevelBlock, 2);
+                }
 			}
 		}
 
@@ -342,11 +363,11 @@ namespace LevelCreation
 		/// Creates the lights.
 		/// </summary>
 		/// <param name="wall">Wall.</param>
-		private void CreateLights(GameObject levelBlock, int wall, LevelOrientation orientation)
+		private void CreateLights(GameObject levelBlock, int wall)
 		{
 			GameObject light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
 
-			if (orientation == LevelOrientation.Vertical)
+			if (CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation == LevelOrientation.Vertical)
 			{
 				var pos = CalculationSingleton.Instance.GetPositionForObject(levelBlock, light, wall, ObjectOrientation.Center);
 				float y = levelBlock.transform.position.y + CalculationSingleton.Instance.JumpDistance;
@@ -355,6 +376,13 @@ namespace LevelCreation
 			}
 			else
 			{
+                var wallDoors = HelperSingleton.Instance.GetAllBlockedWalls(levelBlock);
+                if (wallDoors.Any(dr => dr.WallNumber == wall))
+                {
+                    // If the wall where the light should be placed is not a wall - do not place it
+                    return;
+                }
+
 				var pos = CalculationSingleton.Instance.GetPositionForObject(levelBlock, light, wall, ObjectOrientation.Center);
 				float y = levelBlock.transform.position.y + (CalculationSingleton.Instance.GetSize(levelBlock).y / 2);
 				light.transform.position = new Vector3(pos.Position.x, y, pos.Position.z);

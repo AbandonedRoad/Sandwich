@@ -10,7 +10,6 @@ namespace Singleton
 	{
 		private static XMLSingleton _instance;
 
-		public Dictionary<string, BlockInfo> BlockInfos = new Dictionary<string, BlockInfo>();
 		public Dictionary<string, ObjectInfo> ObjectInfos = new Dictionary<string, ObjectInfo>();
 		
 		/// <summary>
@@ -38,25 +37,7 @@ namespace Singleton
 			// ------------------------
 			// Forenames
 			// ------------------------
-			XmlNodeList items = GetItems("XML/LevelBlockInfo", "/LevelBlockInfos", "LevelBlockInfo");
-			
-			// Load Items
-			foreach (XmlNode item in items) 
-			{
-				float wallSize = 0;
-				int doorWall = -1;
-
-				float.TryParse(item["WallSize"].InnerText, out wallSize);
-				int.TryParse(item["DoorWall"].InnerText, out doorWall);
-
-				BlockInfo blockInfo = new BlockInfo(item["Key"].InnerText, wallSize, doorWall);
-				BlockInfos.Add(blockInfo.Key, blockInfo);
-			}
-
-			// ------------------------
-			// Forenames
-			// ------------------------
-			items = GetItems("XML/ObjectInfo", "/ObjectInfos", "ObjectInfo");
+            XmlNodeList items = GetItems("XML/ObjectInfo", "/ObjectInfos", "ObjectInfo");
 			
 			// Load Items
 			foreach (XmlNode item in items) 

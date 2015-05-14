@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 using Blocks;
 using LevelCreation;
 using Singletons;
+using System.Collections.Generic;
 
 namespace Singleton
 {
@@ -14,6 +15,8 @@ namespace Singleton
 		private static CalculationSingleton _instance;
 
 		public float JumpDistance = 2.25f;
+
+        public CreationScope ActualCreationScope { get; set; }
 
 		/// <summary>
 		/// Gets instance
@@ -25,6 +28,7 @@ namespace Singleton
 				if (_instance == null) 
 				{
 					_instance = new CalculationSingleton();
+                    _instance.ActualCreationScope = new CreationScope();
 				}
 				
 				return _instance;
@@ -76,13 +80,13 @@ namespace Singleton
 			if (childRenderer == null) Debug.LogError("No RenderObject found for: " + childToPlace.name);
 
 			var parentSize = parentRenderer.bounds.size;
-			var childSize = childRenderer.bounds.size;
-			var blockInfo = XMLSingleton.Instance.BlockInfos[parentObject.name];
+            var childSize = childRenderer.bounds.size;
 
-			float middleXObject = (parentSize.x - (2*blockInfo.WallSize)) / 2;
+            var descriptor = HelperSingleton.Instance.GetWallDescription(parentObject);
+            float middleXObject = (parentSize.x - (2 * descriptor.WallStrength)) / 2;
 			float childLongSide = childSize.x > childSize.z ? childSize.x : childSize.z;
 			float childShortSide = childSize.x > childSize.z ? childSize.z : childSize.x;
-			float middleZObject = (parentSize.z - (2*blockInfo.WallSize)) / 2;
+            float middleZObject = (parentSize.z - (2 * descriptor.WallStrength)) / 2;
 			float xPos = parentObject.transform.position.x;
 			float zPos = parentObject.transform.position.z;
 			float yRot = 0;
@@ -120,7 +124,7 @@ namespace Singleton
 		/// <returns>The position for transition.</returns>
 		/// <param name="actualBlock">Actual block.</param>
 		/// <param name="transitionToBeCreate">Transition to be create.</param>
-		public GameObject GetStartForVerticalTransition(GameObject lastTransition, AreaInfos areaInfo, LevelOrientation fromOrientation)
+		public GameObject GetStartForVerticalTransition(GameObject lastTransition, AreaInfos areaInfo)
 		{
 			var parent = GameObject.Find("_Levels").transform;
 
@@ -130,19 +134,17 @@ namespace Singleton
 				return null;
 			}
 
-			var infos = XMLSingleton.Instance.BlockInfos[lastTransition.name];
-			var instance = fromOrientation == LevelOrientation.Vertical 
+            var wallDoors = HelperSingleton.Instance.GetAllDoorWalls(lastTransition);
+			var instance = CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical 
 				? PrefabSingleton.Instance.Create(areaInfo.VFloorDoor)
 				: PrefabSingleton.Instance.Create(areaInfo.HBlock);
 			instance.transform.parent = parent;
 
-			Debug.Log("From: " + fromOrientation + " To: Vertical   Last Trans: " + lastTransition.name + "   New block: " + instance.name);
-
 			float xValue = lastTransition.transform.position.x;
 			Vector3 size = GetSize(instance);
-			if (infos.DoorWall == 0 || infos.DoorWall == 2)
+            if (wallDoors.Any(dsc => dsc.WallNumber == 0 || dsc.WallNumber == 2))
 			{
-				xValue += infos.DoorWall == 0 ? size.x : size.x * -1;
+                xValue += wallDoors.Any(dsc => dsc.WallNumber == 0) ? size.x : size.x * -1;
 			}
 			else
 			{
@@ -150,9 +152,9 @@ namespace Singleton
 			}
 
 			float zValue = lastTransition.transform.position.z;
-			if (infos.DoorWall == 1 || infos.DoorWall == 3)
+            if (wallDoors.Any(dsc => dsc.WallNumber == 1 || dsc.WallNumber == 3))
 			{
-				zValue += infos.DoorWall ==  1 ? size.z : size.z * -1;
+                zValue += wallDoors.Any(dsc => dsc.WallNumber == 1) ? size.z : size.z * -1;
 			}
 			else
 			{
@@ -161,6 +163,16 @@ namespace Singleton
 			
 			instance.transform.position = new Vector3(xValue, lastTransition.transform.position.y, zValue);
 			instance.transform.rotation = Quaternion.Euler(0, 180, 0);
+
+            HelperSingleton.Instance.CreateDebugGOAtPosition(
+                  "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation
+                + "  Act Level: " + CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation
+                + "  Prv Horz: " + CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection
+                + "  Act Horz: " + CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection
+                + "  Prv Vert: " + CalculationSingleton.Instance.ActualCreationScope.PreviousVerticalDirection
+                + "  Act Vert: " + CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection
+                + "  Last Trans: " + lastTransition.name
+                + "  New block: " + instance.name, instance.transform.position);
 
 			return instance;		
 		}
@@ -171,7 +183,7 @@ namespace Singleton
 		/// <returns>The position for transition.</returns>
 		/// <param name="actualBlock">Actual block.</param>
 		/// <param name="transitionToBeCreate">Transition to be create.</param>
-		public GameObject GetStartForHorintzalTransition(GameObject lastTransition, AreaInfos areaInfo, LevelOrientation fromOrientation)
+		public GameObject GetStartForHorintzalTransition(GameObject lastTransition, AreaInfos areaInfo)
 		{
 			var parent = GameObject.Find("_Levels").transform;
 			
@@ -180,20 +192,35 @@ namespace Singleton
 				// We have no transition - this is the first area
 				return null;
 			}
-			
-			var infos = XMLSingleton.Instance.BlockInfos[lastTransition.name];
-			var instance = fromOrientation == LevelOrientation.Vertical 
-				? PrefabSingleton.Instance.Create(areaInfo.HTransition)
-				: PrefabSingleton.Instance.Create(areaInfo.HBlock);
+
+            GameObject instance;
+            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical)
+            {
+                instance = PrefabSingleton.Instance.Create(areaInfo.HTransition);
+            }
+            else
+            {
+                if (CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection == CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
+                {
+                    // Direction did not change - create a regular block.
+                    instance = PrefabSingleton.Instance.Create(areaInfo.HBlock);
+                }
+                else
+                {
+                    // Direction changed - create corner.
+                    instance = PrefabSingleton.Instance.Create(areaInfo.HCorner);
+                    instance.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
+                }
+            }
+
 			instance.transform.parent = parent;
-			
-			Debug.Log("From: " + fromOrientation + " To: Horinzontal   Last Trans: " + lastTransition.name + "   New block: " + instance.name);
-			
+            
+            var wallDoors = HelperSingleton.Instance.GetAllDoorWalls(lastTransition); 
 			float xValue = lastTransition.transform.position.x;
 			Vector3 size = GetSize(instance);
-			if (infos.DoorWall == 0 || infos.DoorWall == 2)
-			{
-				xValue += infos.DoorWall == 0 ? size.x : size.x * -1;
+            if (wallDoors.Any(dsc => dsc.WallNumber == 0 || dsc.WallNumber == 2))
+            {
+				xValue += wallDoors.Any(dsc => dsc.WallNumber == 0) ? size.x : size.x * -1;
 			}
 			else
 			{
@@ -201,9 +228,9 @@ namespace Singleton
 			}
 			
 			float zValue = lastTransition.transform.position.z;
-			if (infos.DoorWall == 1 || infos.DoorWall == 3)
-			{
-				zValue += infos.DoorWall ==  1 ? size.z : size.z * -1;
+            if (wallDoors.Any(dsc => dsc.WallNumber == 1 || dsc.WallNumber == 3))
+            {
+                zValue += wallDoors.Any(dsc => dsc.WallNumber == 1) ? size.z : size.z * -1;
 			}
 			else
 			{
@@ -211,7 +238,17 @@ namespace Singleton
 			}
 			
 			instance.transform.position = new Vector3(xValue, lastTransition.transform.position.y, zValue);
-			instance.transform.rotation = Quaternion.Euler(0, 180, 0);
+			// instance.transform.rotation = Quaternion.Euler(0, 180, 0);
+
+            HelperSingleton.Instance.CreateDebugGOAtPosition(
+                  "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation
+                + "  Act Level: " + CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation
+                + "  Prv Horz: " + CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection
+                + "  Act Horz: " + CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection
+                + "  Prv Vert: " + CalculationSingleton.Instance.ActualCreationScope.PreviousVerticalDirection
+                + "  Act Vert: " + CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection
+                + "  Last Trans: " + lastTransition.name
+                + "  New block: " + instance.name, instance.transform.position);
 			
 			return instance;		
 		}
@@ -245,5 +282,21 @@ namespace Singleton
 
 			return PrefabSingleton.Instance.Create(objectToPlace, pos);
 		}
-	}
+
+        /// <summary>
+        /// Returns the block from an area which matches the y pos.
+        /// </summary>
+        /// <param name="area"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public GameObject GetBlockFromArea(IEnumerable<GameObject> area, float y)
+        {
+            GameObject result;
+
+            area = area.OrderBy(bk => bk.transform.position.y);
+            result = area.FirstOrDefault(bk => Math.Round(y, 1) >= Math.Round(bk.transform.position.y, 1));
+
+            return result;
+        }
+    }
 }

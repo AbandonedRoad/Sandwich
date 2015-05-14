@@ -24,6 +24,7 @@ namespace LevelCreation
 		public GameObject HFloor {get; set;} 
 		public GameObject HBlock {get; set;} 
 		public GameObject HTransition {get; set;} 
-		public GameObject HExit {get; set;} 
+		public GameObject HExit {get; set;}
+        public GameObject HCorner { get; set; }
 	}
 }

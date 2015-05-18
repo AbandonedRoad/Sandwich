@@ -81,6 +81,9 @@ namespace Menu
 		{
 			SwitchStartPanel();
 
+            // Destroy, if needed
+            HelperSingleton.Instance.DestroyLevel();
+
 			// int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
 			int seed = 89;
 			PrefabSingleton.Instance.LevelStartup.Seed = seed;

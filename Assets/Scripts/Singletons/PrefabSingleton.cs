@@ -40,6 +40,7 @@ namespace Singleton
 		public Transform StandBlockParent {get; private set;}
 		public Transform LightsParent {get; private set;}
 		public Transform CeillingParent {get; private set;}
+        public Transform DebugParent {get; private set;}
 		public SceneFadeInOut ScreenFader {get; private set;}
 		public YouAreDeadHandler DeadHandler {get; private set;}
 		public SceneStatisticsHandler SceneStatistics {get; private set;}
@@ -116,6 +117,7 @@ namespace Singleton
 			StandBlockParent = GameObject.Find ("_Stands").transform;
 			LightsParent = GameObject.Find ("_Lights").transform;
 			CeillingParent = GameObject.Find ("_Ceilling").transform;
+            DebugParent = GameObject.Find("_Debug").transform;
 
 			// Scripts
 			var handlingPrefab = GameObject.Find ("HandlingObjectPrefab");
@@ -178,7 +180,11 @@ namespace Singleton
             
 			result.name = result.name.Substring(0, result.name.Length - 7);
 
-            CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock = result;
+            if (toBeCreated.tag == "LevelBlock")
+            {
+                // Remeber, if this is a level block
+                CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock = result;
+            }
 
 			return result;		
 		}

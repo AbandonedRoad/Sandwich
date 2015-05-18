@@ -14,6 +14,9 @@ using System.Linq;
 using Singleton;
 using Assets.Scripts.Blocks;
 using Assets.Scripts.Enums;
+using Assets.Scripts.Debug;
+using LevelCreation;
+using Enums;
 
 namespace Singletons
 {
@@ -144,27 +147,12 @@ namespace Singletons
 		/// </summary>
 		public void DestroyLevel()
 		{
-			// Destroy all old gameobjectz
-			foreach (Transform item in PrefabSingleton.Instance.CeillingParent.transform)
-			{
-				GameObject.Destroy(item.gameObject)	;
-			}
-			foreach (Transform item in PrefabSingleton.Instance.LevelParent.transform)
-			{
-				GameObject.Destroy(item.gameObject)	;
-			}
-			foreach (Transform item in PrefabSingleton.Instance.LightsParent.transform)
-			{
-				GameObject.Destroy(item.gameObject)	;
-			}
-			foreach (Transform item in PrefabSingleton.Instance.PickupParent.transform)
-			{
-				GameObject.Destroy(item.gameObject)	;
-			}
-			foreach (Transform item in PrefabSingleton.Instance.StandBlockParent.transform)
-			{
-				GameObject.Destroy(item.gameObject)	;
-			}
+            PrefabSingleton.Instance.CeillingParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+			PrefabSingleton.Instance.LevelParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+			PrefabSingleton.Instance.LightsParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+			PrefabSingleton.Instance.PickupParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+			PrefabSingleton.Instance.StandBlockParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+            PrefabSingleton.Instance.DebugParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
 			
 			// Destroy all Hearts
 			var hearts = GameObject.FindGameObjectsWithTag("Heart");
@@ -172,6 +160,8 @@ namespace Singletons
 			{
 				GameObject.Destroy(heart);
 			}
+
+            CalculationSingleton.Instance.ActualCreationScope = new CreationScope();
 		}
 
         /// <summary>
@@ -183,7 +173,11 @@ namespace Singletons
         {
             GameObject empty = new GameObject();
             empty.transform.position = position;
-            empty.transform.name = text;
+            empty.transform.name = "DEBUG";
+            empty.transform.parent = PrefabSingleton.Instance.DebugParent;
+
+            var info = empty.AddComponent<DebugInfo>();
+            info.DebugInfoValue = text;
         }
 
         /// <summary>
@@ -239,6 +233,31 @@ namespace Singletons
 
             var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
             return wallDescriptors.Where(wd => wd.Descriptor != WallDescription.Wall).ToList();
+        }
+
+        /// <summary>
+        /// Returns the Opposite of the actual HorzDirection enum
+        /// </summary>
+        /// <param name="direction"></param>
+        /// <returns></returns>
+        public HorzDirection GetOpposite(HorzDirection direction)
+        {
+            if (direction == HorzDirection.Backwards)
+            {
+                return HorzDirection.Forward;
+            }
+            else if (direction == HorzDirection.Forward) 
+            {
+                return HorzDirection.Backwards;
+            }
+            else if (direction == HorzDirection.Left)
+            {
+                return HorzDirection.Right;
+            }
+            else
+            {
+                return HorzDirection.Left;
+            }
         }
 	}
 }

@@ -38,31 +38,6 @@ namespace Singleton
 		}
 
 		/// <summary>
-		/// Gets the size.
-		/// </summary>
-		/// <returns>The size.</returns>
-		/// <param name="objectToCheck">Object to check.</param>
-		public Vector3 GetSize(GameObject objectToCheck)
-		{
-            if (objectToCheck == null)
-            {
-                Debug.LogError("Object to check is null!");
-            }
-
-			Renderer renderer = objectToCheck.tag == "RenderObject" 
-				? objectToCheck.GetComponent<Renderer>() 
-				: objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
-			if (renderer == null) 
-			{
-				Debug.LogError("No RenderObject found for: " + objectToCheck.name);
-			}
-
-			return renderer != null 
-				? renderer.bounds.size
-				: Vector3.one;
-		}
-
-		/// <summary>
 		/// Gets the position for object.
 		/// </summary>
 		/// <returns>The position for object.</returns>
@@ -126,10 +101,10 @@ namespace Singleton
 		/// <returns>The position for transition.</returns>
 		/// <param name="actualBlock">Actual block.</param>
 		/// <param name="transitionToBeCreate">Transition to be create.</param>
-		public GameObject GetStartForVerticalTransition(AreaInfos areaInfo)
+		public GameObject GetStartForVerticalArea()
 		{
 			var parent = GameObject.Find("_Levels").transform;
-            GameObject lastTransition = CalculationSingleton.Instance.ActualCreationScope.ActualTransitionInfo.TransitionObject;
+            GameObject lastTransition = CalculationSingleton.Instance.ActualCreationScope.ActualTransitionObject;
 
 			if (lastTransition == null)
 			{
@@ -138,13 +113,29 @@ namespace Singleton
 			}
 
             var wallDoors = HelperSingleton.Instance.GetAllDoorWalls(lastTransition);
-			var instance = CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical 
-				? PrefabSingleton.Instance.Create(areaInfo.VFloorDoor)
-				: PrefabSingleton.Instance.Create(areaInfo.HBlock);
-			instance.transform.parent = parent;
+
+            GameObject instance;
+            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical)
+            {
+                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.VFloorDoor);
+                
+                // Rotate last vertical transition into correct rotation.
+                var doorWall = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
+                doorWall.RotateTo(HorzDirection.Backwards);
+
+                // Rotate to actual be created block into correct rotation.
+                doorWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
+                doorWall.RotateTo(HorzDirection.Forward);
+            }
+            else
+            {
+                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HBlock);
+            }
+
+            instance.transform.parent = parent;
 
 			float xValue = lastTransition.transform.position.x;
-			Vector3 size = GetSize(instance);
+			Vector3 size = HelperSingleton.Instance.GetSize(instance);
             if (wallDoors.Any(dsc => dsc.WallNumber == 0 || dsc.WallNumber == 2))
 			{
                 xValue += wallDoors.Any(dsc => dsc.WallNumber == 0) ? size.x : size.x * -1;
@@ -165,7 +156,6 @@ namespace Singleton
 			}
 			
 			instance.transform.position = new Vector3(xValue, lastTransition.transform.position.y, zValue);
-			instance.transform.rotation = Quaternion.Euler(0, 180, 0);
 
             HelperSingleton.Instance.CreateDebugGOAtPosition(
                   "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine
@@ -186,9 +176,9 @@ namespace Singleton
 		/// <returns>The position for transition.</returns>
 		/// <param name="actualBlock">Actual block.</param>
 		/// <param name="transitionToBeCreate">Transition to be create.</param>
-		public GameObject GetStartForHorintzalTransition(AreaInfos areaInfo)
+		public GameObject GetStartForHorintzalArea()
 		{
-            GameObject lastTransition = CalculationSingleton.Instance.ActualCreationScope.ActualTransitionInfo.TransitionObject;
+            GameObject lastTransition = CalculationSingleton.Instance.ActualCreationScope.ActualTransitionObject;
 
 			if (lastTransition == null)
 			{
@@ -199,7 +189,7 @@ namespace Singleton
             GameObject instance;
             if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical)
             {
-                instance = PrefabSingleton.Instance.Create(areaInfo.HTransition);
+                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HTransition);
 
                 // Rotate last vertical transition into correct rotation.
                 var doorWall = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
@@ -214,42 +204,24 @@ namespace Singleton
                 if (CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection == CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
                 {
                     // Direction did not change - create a regular block.
-                    instance = PrefabSingleton.Instance.Create(areaInfo.HBlock);
+                    instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HBlock);
                     instance.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                 }
                 else
                 {
                     // Direction changed - create corner.
-                    instance = PrefabSingleton.Instance.Create(areaInfo.HCorner);
+                    instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HCorner);
                     instance.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
                 }
             }
 
             instance.transform.parent = PrefabSingleton.Instance.LevelParent;
-            
-            var wallDoors = HelperSingleton.Instance.GetAllDoorWalls(lastTransition); 
-			float xValue = lastTransition.transform.position.x;
-			Vector3 size = GetSize(instance);
-            if (wallDoors.Any(dsc => dsc.WallNumber == 0 || dsc.WallNumber == 2))
-            {
-				xValue += wallDoors.Any(dsc => dsc.WallNumber == 0) ? size.x : size.x * -1;
-			}
-			else
-			{
-				xValue = lastTransition.transform.position.x;
-			}
-			
-			float zValue = lastTransition.transform.position.z;
-            if (wallDoors.Any(dsc => dsc.WallNumber == 1 || dsc.WallNumber == 3))
-            {
-                zValue += wallDoors.Any(dsc => dsc.WallNumber == 1) ? size.z : size.z * -1;
-			}
-			else
-			{
-				zValue = lastTransition.transform.position.z;
-			}
-			
-			instance.transform.position = new Vector3(xValue, lastTransition.transform.position.y, zValue);
+
+            Vector3 size = HelperSingleton.Instance.GetSize(instance);
+            float zValue = lastTransition.transform.position.z;
+            float xValue = lastTransition.transform.position.x;
+
+            instance.transform.position = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForHorizontalStart();
 
             HelperSingleton.Instance.CreateDebugGOAtPosition(
                   "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine
@@ -273,8 +245,8 @@ namespace Singleton
 		/// <param name="orientation">Orientation.</param>
 		public GameObject PlaceOnTopOfObject(GameObject onTopOf, GameObject objectToPlace, ObjectOrientation orientation)
 		{
-			var onTopOfSize = CalculationSingleton.Instance.GetSize(onTopOf);
-			var objectToPlaceSize = CalculationSingleton.Instance.GetSize(objectToPlace);
+            var onTopOfSize = HelperSingleton.Instance.GetSize(onTopOf);
+            var objectToPlaceSize = HelperSingleton.Instance.GetSize(objectToPlace);
 			var center = HelperSingleton.Instance.GetCenterOfGameObject(onTopOf);			
 			Vector3 pos;
 

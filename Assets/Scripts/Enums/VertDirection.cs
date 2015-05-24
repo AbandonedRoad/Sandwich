@@ -5,6 +5,7 @@ namespace Enums
 	public enum VertDirection
 	{
 		Up = 0,
-		Down = 1
+		Down = 1,
+        NotSet = 2
 	}
 }

@@ -6,6 +6,7 @@ using Assets.Scripts.Blocks;
 using System;
 using System.Linq;
 using Assets.Scripts.Enums;
+using Singletons;
 
 namespace LevelCreation
 {
@@ -14,22 +15,37 @@ namespace LevelCreation
     /// </summary>
     public class CreationScope
     {
+        private LevelOrientation _nextLevelOrienation;
         private LevelOrientation _actualLevelOrienation;
+        private HorzDirection _nextHorzDirection;
         private HorzDirection _actualHorzDirection;
-        private VertDirection _actualVertDirection;
+        private VertDirection _nextVertDirection = VertDirection.NotSet;
+        private VertDirection _actualVertDirection = VertDirection.NotSet;
         private GameObject _actualCreatedLevelBlock;
-        private TransitionInfo _actualTransitionInfo;
+        private GameObject _actualTransitionInfo;
 
         /// <summary>
-        /// The Actual Level Orientation.
+        /// Level Orienation
         /// </summary>
+        public LevelOrientation NextLevelOrientation
+        {
+            get
+            {
+                return _nextLevelOrienation;
+            }
+            set
+            {
+                ActualLevelOrientation = _nextLevelOrienation;
+                _nextLevelOrienation = value;
+            }
+        }
         public LevelOrientation ActualLevelOrientation 
         { 
             get 
             {
                 return _actualLevelOrienation;
             }
-            set
+            private set
             {
                 PreviouslyLevelOrientation = _actualLevelOrienation;
                 _actualLevelOrienation = value;
@@ -38,15 +54,27 @@ namespace LevelCreation
         public LevelOrientation PreviouslyLevelOrientation { get; private set; }
 
         /// <summary>
-        /// The Actual Horizontzal Direction.
+        /// Horizontal Orienation
         /// </summary>
+        public HorzDirection NextHorizontalDirection
+        {
+            get
+            {
+                return _nextHorzDirection;
+            }
+            set
+            {
+                ActualHorizontalDirection = _nextHorzDirection;
+                _nextHorzDirection = value;
+            }
+        }
         public HorzDirection ActualHorizontalDirection
         {
             get
             {
                 return _actualHorzDirection;
             }
-            set
+            private set
             {
                 PreviousHorizontalDirection = _actualHorzDirection;
                 _actualHorzDirection = value;
@@ -55,15 +83,27 @@ namespace LevelCreation
         public HorzDirection PreviousHorizontalDirection { get; private set; }
 
         /// <summary>
-        /// The Actual Vertical Direction.
+        /// The Vertical Direction.
         /// </summary>
+        public VertDirection NextVerticalDirection
+        {
+            get
+            {
+                return _nextVertDirection;
+            }
+            set
+            {
+                ActualVerticalDirection = _nextVertDirection;
+                _nextVertDirection = value;
+            }
+        }
         public VertDirection ActualVerticalDirection
         {
             get
             {
                 return _actualVertDirection;
             }
-            set
+            private set
             {
                 PreviousVerticalDirection = _actualVertDirection;
                 _actualVertDirection = value;
@@ -91,7 +131,7 @@ namespace LevelCreation
         /// <summary>
         /// The last created Transition Info
         /// </summary>
-        public TransitionInfo ActualTransitionInfo
+        public GameObject ActualTransitionObject
         {
             get
             {
@@ -99,11 +139,27 @@ namespace LevelCreation
             }
             set
             {
-                PreviouslyTransitionInfo = _actualTransitionInfo;
+                PreviouslyTransitionObject = _actualTransitionInfo;
                 _actualTransitionInfo = value;
             }
         }
-        public TransitionInfo PreviouslyTransitionInfo { get; set; }
+        public GameObject PreviouslyTransitionObject { get; set; }
+
+        /// <summary>
+        /// The actual Area Info - the kind of blocks we use and stuff.
+        /// </summary>
+        public AreaInfos AreaInfos { get; set; }
+
+        /// <summary>
+        /// Indicates if the area we are creating is the last one - this is imported in order to know where text exit will be 
+        /// </summary>
+        public bool IsLastArea { get; set; }
+
+        /// <summary>
+        /// Creates new instance
+        /// </summary>
+        public CreationScope()
+        {}
 
         /// <summary>
         /// Returns the correct rotation for the given horizonzal rotations.
@@ -121,19 +177,35 @@ namespace LevelCreation
             return Quaternion.Euler(result);
         }
 
-        public Vector3 CalculatePositionForHorizontalPosition()
+        /// <summary>
+        /// Gets the next position for the actual Horizontal Block
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 CalculatePositionForHorizontalStart()
         {
             Vector3 result = new Vector3(0, 0, 0);
 
-            return result;
-        }
+            GameObject previousInstance = this.PreviouslyCreatedLevelBlock;
+            GameObject actualInstace = this.ActualCreatedLevelBlock;
+            Vector3 actualSize = HelperSingleton.Instance.GetSize(actualInstace);
 
-        /// <summary>
-        /// Creates new instance
-        /// </summary>
-        public CreationScope()
-        {
-            ActualTransitionInfo = new TransitionInfo();
+            switch (this.ActualHorizontalDirection)
+            {
+                case HorzDirection.Backwards:
+                    result = new Vector3(previousInstance.transform.position.x, previousInstance.transform.position.y, previousInstance.transform.position.z - actualSize.z);
+                    break;
+                case HorzDirection.Forward:
+                    result = new Vector3(previousInstance.transform.position.x, previousInstance.transform.position.y, previousInstance.transform.position.z + actualSize.z);
+                    break;
+                case HorzDirection.Left:
+                    result = new Vector3(previousInstance.transform.position.x + actualSize.x, previousInstance.transform.position.y, previousInstance.transform.position.z);
+                    break;
+                case HorzDirection.Right:
+                    result = new Vector3(previousInstance.transform.position.x - actualSize.x, previousInstance.transform.position.y, previousInstance.transform.position.z);
+                    break;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -169,6 +241,26 @@ namespace LevelCreation
             }
 
             return Quaternion.Euler(result);
+        }
+
+        /// <summary>
+        /// Gets the horizontal transition which is needed.
+        /// </summary>
+        /// <returns></returns>
+        public GameObject GetHorizontalTranstion(Vector3 position, Vector3? rotation)
+        {
+            GameObject instance = null;
+
+            if (IsLastArea)
+            {
+                instance = PrefabSingleton.Instance.Create(AreaInfos.HExit, position, rotation);
+            }
+            else
+            {
+                instance = PrefabSingleton.Instance.Create(AreaInfos.HTransition, position, rotation);
+            }
+
+            return instance;
         }
     }
 }

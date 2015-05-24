@@ -259,5 +259,30 @@ namespace Singletons
                 return HorzDirection.Left;
             }
         }
-	}
+
+        /// <summary>
+        /// Gets the size.
+        /// </summary>
+        /// <returns>The size.</returns>
+        /// <param name="objectToCheck">Object to check.</param>
+        public Vector3 GetSize(GameObject objectToCheck)
+        {
+            if (objectToCheck == null)
+            {
+                Debug.LogError("Object to check is null!");
+            }
+
+            Renderer renderer = objectToCheck.tag == "RenderObject"
+                ? objectToCheck.GetComponent<Renderer>()
+                : objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
+            if (renderer == null)
+            {
+                Debug.LogError("No RenderObject found for: " + objectToCheck.name);
+            }
+
+            return renderer != null
+                ? renderer.bounds.size
+                : Vector3.one;
+        }
+    }
 }

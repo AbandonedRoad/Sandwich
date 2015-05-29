@@ -44,8 +44,9 @@ namespace Singleton
 		/// <param name="parentObject">Parent object.</param>
 		/// <param name="objectToPlace">Object to place.</param>
 		/// <param name="getForWall">Get for wall.</param>
-		public BlockPlacement GetPositionForObject(GameObject parentObject, GameObject childToPlace, int getForWall, ObjectOrientation orientation)
+		public void GetPositionForObject(GameObject parentObject, GameObject childToPlace, int getForWall, ObjectOrientation orientation, float overrideYPos = 0)
 		{
+            // Evaluate if renderer is present.
 			Renderer parentRenderer = parentObject.tag == "RenderObject" 
 				? parentObject.GetComponent<Renderer>() 
 				: parentObject.GetComponentsInChildren<Renderer>().ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
@@ -56,44 +57,23 @@ namespace Singleton
 			if (parentRenderer == null) Debug.LogError("No RenderObject found for: " + parentObject.name);
 			if (childRenderer == null) Debug.LogError("No RenderObject found for: " + childToPlace.name);
 
+            // Calculate
 			var parentSize = parentRenderer.bounds.size;
             var childSize = childRenderer.bounds.size;
+            var wallObject = parentObject.transform.GetComponentsInChildren<WallDescriptor>().First(wl => wl.WallNumber == getForWall);
 
-            var descriptor = HelperSingleton.Instance.GetWallDescription(parentObject);
-            float middleXObject = (parentSize.x - (2 * descriptor.WallStrength)) / 2;
-			float childLongSide = childSize.x > childSize.z ? childSize.x : childSize.z;
-			float childShortSide = childSize.x > childSize.z ? childSize.z : childSize.x;
-            float middleZObject = (parentSize.z - (2 * descriptor.WallStrength)) / 2;
-			float xPos = parentObject.transform.position.x;
-			float zPos = parentObject.transform.position.z;
-			float yRot = 0;
+            float childLongSide = childSize.x > childSize.z ? childSize.x : childSize.z;
+            float childShortSide = childSize.x > childSize.z ? childSize.z : childSize.x;
+            float wallLength = parentSize.x - wallObject.WallStrength * 2;
+            float minWallPlacement = (wallLength / 2) - (childLongSide / 2);
+            float maxWallPlacement = minWallPlacement * -1;
 
-			switch (getForWall) 
-			{
-				case 0:
-				case 2:
-				xPos += getForWall == 0 ? (middleXObject - (childShortSide / 2)) * -1 : middleXObject - (childShortSide / 2);
-				zPos += orientation == ObjectOrientation.Center ? 0 : Random.Range((middleZObject - childLongSide), (middleZObject - childLongSide)*-1);
-					yRot = getForWall == 0 ? 180 : 0;
-					break;
-				case 1:
-				case 3:
-				xPos += orientation == ObjectOrientation.Center ? 0 : Random.Range((middleXObject - childLongSide), (middleXObject - childLongSide)*-1);
-				zPos += getForWall == 1 ? (middleZObject - (childShortSide / 2)) * -1 : middleZObject - (childShortSide / 2);
-					yRot = getForWall == 1 ? 90 : 270;
-					break;
-				default:
-					break;
-			}
-
-			childToPlace.name = "Wall: " + getForWall.ToString();
-
-			return new BlockPlacement
-			{
-				Position = new Vector3(xPos, 0, zPos),
-				Rotation = Quaternion.Euler(0, yRot, 0)
-			};		
-		}
+            // Set object
+            childToPlace.transform.SetParent(wallObject.transform);
+            childToPlace.transform.localPosition = new Vector3((wallObject.WallStrength + (childShortSide / 2)) * -1, overrideYPos,
+            orientation == ObjectOrientation.Center ? 0 : Random.Range(minWallPlacement, maxWallPlacement));
+            childToPlace.transform.localRotation = Quaternion.Euler(new Vector3(0, wallObject.transform.localRotation.y, 0));
+        }
 
 		/// <summary>
 		/// Gets the position for transition.
@@ -103,6 +83,12 @@ namespace Singleton
 		/// <param name="transitionToBeCreate">Transition to be create.</param>
 		public GameObject GetStartForVerticalArea()
 		{
+            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Horizontal)
+            {
+                // A Transition is not necessary here - we can use the already created block from the horizontal lane
+                return CalculationSingleton.Instance.ActualCreationScope.ActualTransitionObject;
+            }
+
 			var parent = GameObject.Find("_Levels").transform;
             GameObject lastTransition = CalculationSingleton.Instance.ActualCreationScope.ActualTransitionObject;
 
@@ -159,13 +145,16 @@ namespace Singleton
 
             HelperSingleton.Instance.CreateDebugGOAtPosition(
                   "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine
-                + "  Act Level: " + CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation + Environment.NewLine
-                + "  Prv Horz: " + CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection + Environment.NewLine
-                + "  Act Horz: " + CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection + Environment.NewLine
-                + "  Prv Vert: " + CalculationSingleton.Instance.ActualCreationScope.PreviousVerticalDirection + Environment.NewLine
-                + "  Act Vert: " + CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection + Environment.NewLine
-                + "  Last Trans: " + lastTransition.name + Environment.NewLine
-                + "  New block: " + instance.name, instance.transform.position);
+                + "Act Level: " + CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation + Environment.NewLine
+                + "Nxt Level: " + CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation + Environment.NewLine
+                + "Prv Horz: " + CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection + Environment.NewLine
+                + "Act Horz: " + CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection + Environment.NewLine
+                + "Nxt Horz: " + CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection + Environment.NewLine
+                + "Prv Vert: " + CalculationSingleton.Instance.ActualCreationScope.PreviousVerticalDirection + Environment.NewLine
+                + "Act Vert: " + CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection + Environment.NewLine
+                + "Nxt Vert: " + CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection + Environment.NewLine
+                + "Last Trans: " + lastTransition.name + Environment.NewLine
+                + "New block: " + instance.name, instance.transform.position);
 
 			return instance;		
 		}
@@ -201,6 +190,10 @@ namespace Singleton
             }
             else
             {
+                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HBlock);
+                CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
+
+                /*
                 if (CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection == CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
                 {
                     // Direction did not change - create a regular block.
@@ -209,10 +202,11 @@ namespace Singleton
                 }
                 else
                 {
-                    // Direction changed - create corner.
+                    // Direction changed - but crner
                     instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HCorner);
                     instance.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
                 }
+                */
             }
 
             instance.transform.parent = PrefabSingleton.Instance.LevelParent;
@@ -226,12 +220,16 @@ namespace Singleton
             HelperSingleton.Instance.CreateDebugGOAtPosition(
                   "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine
                 + "Act Level: " + CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation + Environment.NewLine
+                + "Nxt Level: " + CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation + Environment.NewLine
                 + "Prv Horz: " + CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection + Environment.NewLine
                 + "Act Horz: " + CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection + Environment.NewLine
+                + "Nxt Horz: " + CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection + Environment.NewLine
                 + "Prv Vert: " + CalculationSingleton.Instance.ActualCreationScope.PreviousVerticalDirection + Environment.NewLine
                 + "Act Vert: " + CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection + Environment.NewLine
+                + "Nxt Vert: " + CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection + Environment.NewLine
                 + "Last Trans: " + lastTransition.name + Environment.NewLine
                 + "New block: " + instance.name, instance.transform.position);
+
 			
 			return instance;		
 		}

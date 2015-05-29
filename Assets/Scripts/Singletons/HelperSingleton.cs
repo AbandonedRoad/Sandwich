@@ -17,6 +17,7 @@ using Assets.Scripts.Enums;
 using Assets.Scripts.Debug;
 using LevelCreation;
 using Enums;
+using Random = UnityEngine.Random;
 
 namespace Singletons
 {
@@ -223,7 +224,7 @@ namespace Singletons
         /// <param name="block"></param>
         /// <param name="specificWall"></param>
         /// <returns></returns>
-        public IEnumerable<WallDescriptor> GetAllBlockedWalls(GameObject block)
+        public IEnumerable<WallDescriptor> GetAllRealWalls(GameObject block)
         {
             if (block == null)
             {
@@ -232,7 +233,7 @@ namespace Singletons
             }
 
             var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
-            return wallDescriptors.Where(wd => wd.Descriptor != WallDescription.Wall).ToList();
+            return wallDescriptors.Where(wd => wd.Descriptor == WallDescription.Wall).ToList();
         }
 
         /// <summary>
@@ -257,6 +258,23 @@ namespace Singletons
             else
             {
                 return HorzDirection.Left;
+            }
+        }
+
+        /// <summary>
+        /// Returns the Opposite of the actual HorzDirection enum
+        /// </summary>
+        /// <param name="direction"></param>
+        /// <returns></returns>
+        public VertDirection GetOpposite(VertDirection direction)
+        {
+            if (direction == VertDirection.Down)
+            {
+                return VertDirection.Up;
+            }
+            else
+            {
+                return VertDirection.Down;
             }
         }
 

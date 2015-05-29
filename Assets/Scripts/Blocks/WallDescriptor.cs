@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Enums;
 using Enums;
 using Singleton;
+using Singletons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Assets.Scripts.Blocks
 
         /// <summary>
         /// Rotates a specific wall that it is facing a certain direction.
+        /// This means, if a raycast would be done between the wall and the target, it would NEVER cross the floor
         /// </summary>
         /// <param name="rotateTo"></param>
         public void RotateTo(HorzDirection rotateTo)
@@ -59,6 +61,16 @@ namespace Assets.Scripts.Blocks
                 default:
                     break;
             }
+        }
+
+        /// <summary>
+        /// If this is called, the Wall is rotated that if faces a certain direction, but on the long side
+        /// This means, if a raycast would be done between the wall and the target, it would always cross the floor
+        /// </summary>
+        /// <param name="rotateTo"></param>
+        public void RotateWallFacesDirection(HorzDirection rotateTo)
+        {
+            RotateTo(HelperSingleton.Instance.GetOpposite(rotateTo));
         }
     }
 }

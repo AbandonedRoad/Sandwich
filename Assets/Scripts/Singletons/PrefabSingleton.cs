@@ -167,17 +167,11 @@ namespace Singleton
 		/// </summary>
 		/// <param name="toBeCreated">To be created.</param>
 		/// <param name="pos">Position.</param>
-		public GameObject Create(GameObject toBeCreated, Vector3? pos = null, Vector3? rot = null)
+		public GameObject Create(GameObject toBeCreated, Vector3? pos = null)
 		{
 			GameObject result;
 			result = GameObject.Instantiate(toBeCreated);
-			result.transform.position = pos.HasValue ? pos.Value : result.transform.position;
-
-            if (rot.HasValue)
-            {
-                result.transform.rotation = Quaternion.Euler(rot.Value);
-            }
-            
+			result.transform.position = pos.HasValue ? pos.Value : result.transform.position;         
 			result.name = result.name.Substring(0, result.name.Length - 7);
 
             if (toBeCreated.tag == "LevelBlock")

@@ -6,6 +6,7 @@ using Assets.Scripts.Blocks;
 using System;
 using System.Linq;
 using Assets.Scripts.Enums;
+using Random = UnityEngine.Random;
 using Singletons;
 
 namespace LevelCreation
@@ -62,7 +63,7 @@ namespace LevelCreation
             {
                 return _nextHorzDirection;
             }
-            set
+            private set
             {
                 ActualHorizontalDirection = _nextHorzDirection;
                 _nextHorzDirection = value;
@@ -91,7 +92,7 @@ namespace LevelCreation
             {
                 return _nextVertDirection;
             }
-            set
+            private set
             {
                 ActualVerticalDirection = _nextVertDirection;
                 _nextVertDirection = value;
@@ -165,16 +166,40 @@ namespace LevelCreation
         /// Returns the correct rotation for the given horizonzal rotations.
         /// </summary>
         /// <returns></returns>
-        public Quaternion CalculateRotationForHorizontalCorner()
+        public void CalculateRotationForHorizontalCorner()
         {
             Vector3 result = new Vector3(0, 0, 0);
 
-            if (this.PreviousHorizontalDirection == HorzDirection.Left)
+            WallDescriptor wallToUse = null;
+            var wall1 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 0).First();
+            var wall2 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 1).First();
+
+            if (PreviousHorizontalDirection == HorzDirection.Backwards)
             {
-                result = this.ActualHorizontalDirection == HorzDirection.Forward ? new Vector3(0, 270, 0) : result;
+                wallToUse = NextHorizontalDirection == HorzDirection.Left
+                    ? wall2
+                    : wall1;
+            }
+            else if (PreviousHorizontalDirection == HorzDirection.Right)
+            {
+                wallToUse = NextHorizontalDirection == HorzDirection.Backwards
+                    ? wall2
+                    : wall1;
+            }
+            else if (PreviousHorizontalDirection == HorzDirection.Forward)
+            {
+                wallToUse = NextHorizontalDirection == HorzDirection.Right
+                    ? wall2
+                    : wall1;
+            }
+            else if (PreviousHorizontalDirection == HorzDirection.Left)
+            {
+                wallToUse = NextHorizontalDirection == HorzDirection.Forward
+                    ? wall2
+                    : wall1;
             }
 
-            return Quaternion.Euler(result);
+            wallToUse.RotateWallFacesDirection(NextHorizontalDirection);
         }
 
         /// <summary>
@@ -212,55 +237,85 @@ namespace LevelCreation
         /// Returns correct rotatation for next block
         /// </summary>
         /// <returns></returns>
-        public Quaternion CalculateRotationForNextHorizonzalBlock()
+        public void CalculateRotationForNextHorizonzalBlock()
         {
-            Vector3 result = Vector3.back;
-            GameObject previousBlock = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock;
-            GameObject actualBlock = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock;
+            // Rotate by 90° in we are going backwards or forwards
+            Vector3 rot = (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
+                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
+                ? new Vector3(0, 90, 0)
+                : new Vector3(0, 0, 0);
 
-            WallDescriptor prevWallDesc = previousBlock.GetComponentsInChildren<WallDescriptor>()
-                .First(dsc => dsc.Descriptor == WallDescription.Door || dsc.Descriptor == WallDescription.Nothing);
-            WallDescriptor actWallDesc = actualBlock.GetComponentsInChildren<WallDescriptor>()
-                .First(dsc => dsc.Descriptor == WallDescription.Door || dsc.Descriptor == WallDescription.Nothing);
-
-            int difference = Math.Abs(prevWallDesc.WallNumber - actWallDesc.WallNumber);
-
-            if ((actWallDesc.Descriptor == WallDescription.Door && prevWallDesc.Descriptor == WallDescription.Door)
-                || (actWallDesc.Descriptor == WallDescription.Nothing && prevWallDesc.Descriptor == WallDescription.Door)
-                || (actWallDesc.Descriptor == WallDescription.Door && prevWallDesc.Descriptor == WallDescription.Nothing))
-            {
-                // Match both walls together
-                // If the wall is the same, we have just to turn the next block by 180°
-                if (difference == 0) result = new Vector3(0, 180, 0);
-                // If it's the next, turn ny 90°
-                else if (difference == 1) result = new Vector3(0, 90, 0);
-                // If it's two blocks away, do not turn- it fits.
-                else if (difference == 2) result = new Vector3(0, 0, 0);
-                // If it's three blocks away, trun by 270°
-                else if (difference == 3) result = new Vector3(0, 270, 0);
-            }
-
-            return Quaternion.Euler(result);
+            this.ActualCreatedLevelBlock.transform.rotation = Quaternion.Euler(rot);
         }
 
         /// <summary>
         /// Gets the horizontal transition which is needed.
         /// </summary>
         /// <returns></returns>
-        public GameObject GetHorizontalTranstion(Vector3 position, Vector3? rotation)
+        public GameObject GetHorizontalTranstion(Vector3 position)
         {
             GameObject instance = null;
 
             if (IsLastArea)
             {
-                instance = PrefabSingleton.Instance.Create(AreaInfos.HExit, position, rotation);
+                instance = PrefabSingleton.Instance.Create(AreaInfos.HExit, position);
             }
             else
             {
-                instance = PrefabSingleton.Instance.Create(AreaInfos.HTransition, position, rotation);
+                if (NextLevelOrientation == LevelOrientation.Vertical)
+                {
+                    instance = PrefabSingleton.Instance.Create(AreaInfos.HTransition, position);
+                }
+                else
+                {
+                    instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
+                    CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
+                }
             }
 
             return instance;
+        }
+
+        public GameObject GetVerticalTransition(Vector3 pos)
+        {
+            return GetHorizontalTranstion(pos);
+        }
+
+        /// <summary>
+        /// Gets a new Horizontal Direction
+        /// </summary>
+        public void GetNewHorzDirection()
+        {
+            HorzDirection newHorzDirection = (HorzDirection)Random.Range(0, 4);
+
+            while (newHorzDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection))
+            {
+                newHorzDirection = (HorzDirection)Random.Range(0, 4);
+            }
+
+            CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection = newHorzDirection;
+        }
+
+        /// <summary>
+        /// Gets a new Horizontal Direction
+        /// </summary>
+        public void GetNewVertDirection()
+        {
+            if (CalculationSingleton.Instance.ActualCreationScope.ActualTransitionObject == null)
+            {
+                CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection = VertDirection.Up;
+            }
+            else
+            {
+                VertDirection newVertDirection = (VertDirection)Random.Range(0, 2);
+
+                while (newVertDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection))
+                {
+                    newVertDirection = (VertDirection)Random.Range(0, 2);
+                }
+
+                CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection = newVertDirection;
+            }
         }
     }
 }

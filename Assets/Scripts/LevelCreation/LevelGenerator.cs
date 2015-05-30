@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using Enums;
 using Blocks;
 using Singletons;
+using Assets.Scripts.Blocks;
+using Assets.Scripts.Enums;
 
 namespace LevelCreation
 {
@@ -242,7 +244,50 @@ namespace LevelCreation
 			float y = startArea.transform.position.y;
 			int lastLevelBlock = 0;
             int counter = 0;
-            
+
+            foreach (var levelBlock in _actualArea)
+            {
+                List<int> compareList = new List<int> { 0, 1, 2, 3};
+				List<int> wallsUsed = new List<int>();
+
+                var walls = levelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.Descriptor == WallDescription.Wall);
+                int wallCount = walls.Count() == 4 ? 3 : walls.Count();
+                for (int i = 0; i < 2; i++)
+                {
+                    VertOrientation verticalOrientation = i == 0
+                        ? VertOrientation.Center
+                        : VertOrientation.Top;
+                    for (int stand = 0; stand < wallCount; stand++)
+                    {
+                        GameObject standBlock = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.RectStandBlock);
+                        int wall;
+                        while (true)
+                        {
+                            wall = Math.Abs(Random.Range(0, 4));
+                            if (!walls.Any(wl => wl.WallNumber == wall))
+                            {
+                                // Continue because we have a door/nothing/exit in the wall we want to place the object in
+                                continue;
+                            }
+
+                            if (!wallsUsed.Contains(wall))
+                            {
+                                wallsUsed.Add(wall);
+                                break;
+                            }
+                        }
+
+                        CalculationSingleton.Instance.GetPositionForObject(levelBlock, standBlock, wall, HorzOrientation.Randomize, verticalOrientation);
+                        CreateCoin(standBlock, HorzOrientation.Center);
+                    }
+                    wallsUsed = new List<int>();
+                }
+
+				IEnumerable<int> unusedWall = compareList.Except(wallsUsed);
+				CreateLights(levelBlock, unusedWall.First());
+            }
+
+            /*
 			while(true)
 			{
                 if (counter > 100)
@@ -296,17 +341,18 @@ namespace LevelCreation
 						}
 					}
 
-                    CalculationSingleton.Instance.GetPositionForObject(actualLevelBlock, standBlock, wall, ObjectOrientation.Randomize, y);
-					CreateCoin(standBlock, ObjectOrientation.Center);
+                    CalculationSingleton.Instance.GetPositionForObject(actualLevelBlock, standBlock, wall, HorzOrientation.Randomize, VertOrientation.);
+                    CreateCoin(standBlock, HorzOrientation.Center);
 				}	
 
-				if (actualLevelBlock != null && actualLevelBlock.GetHashCode() != lastLevelBlock && lastLevelBlock != 0)
+				if (actualLevelBlock != null && actualLevelBlock.GetHashCode() != lastLevelBlock)
 				{
 					IEnumerable<int> unusedWall = compareList.Except(wallsUsed);
 					CreateLights(actualLevelBlock, unusedWall.First());
 				}
 				lastLevelBlock = actualLevelBlock != null ? actualLevelBlock.GetHashCode() : 0;
 			}
+            */
 		}
 
 		/// <summary>
@@ -376,7 +422,7 @@ namespace LevelCreation
 			{
                 light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
                 float y = levelBlock.transform.position.y + CalculationSingleton.Instance.JumpDistance;
-                CalculationSingleton.Instance.GetPositionForObject(levelBlock, light, wall, ObjectOrientation.Center, y);
+                CalculationSingleton.Instance.GetPositionForObject(levelBlock, light, wall);
 			}
 			else
 			{
@@ -384,7 +430,7 @@ namespace LevelCreation
                 foreach (var wallNumber in wallDoors)
                 {
                     light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
-                    CalculationSingleton.Instance.GetPositionForObject(levelBlock, light, wallNumber.WallNumber, ObjectOrientation.Center);
+                    CalculationSingleton.Instance.GetPositionForObject(levelBlock, light, wallNumber.WallNumber, HorzOrientation.Center);
                 }
 			}
 		}
@@ -393,7 +439,7 @@ namespace LevelCreation
 		/// Creates the coin.
 		/// </summary>
 		/// <param name="standBlock">Stand block.</param>
-		private void CreateCoin (GameObject standBlock, ObjectOrientation orientation)
+        private void CreateCoin(GameObject standBlock, HorzOrientation orientation)
 		{
 			int coinSpawn = PlayerSingleton.Instance.Difficulty == Difficulty.Hard ? 3 : -1;
 			coinSpawn = PlayerSingleton.Instance.Difficulty == Difficulty.VeryHard ? 4 : coinSpawn;
@@ -402,7 +448,7 @@ namespace LevelCreation
 			if (Random.Range(0, coinSpawn) == 0)
 			{
 				// Place a coin, if we are lucky
-				var coin = CalculationSingleton.Instance.PlaceOnTopOfObject(standBlock, PrefabSingleton.Instance.Coin, ObjectOrientation.Center);
+                var coin = CalculationSingleton.Instance.PlaceOnTopOfObject(standBlock, PrefabSingleton.Instance.Coin, HorzOrientation.Center);
 				coin.transform.parent = PrefabSingleton.Instance.PickupParent;
 			}
 		}

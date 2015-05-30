@@ -2,9 +2,17 @@ using System;
 
 namespace Enums
 {
-	public enum ObjectOrientation
+    public enum HorzOrientation
 	{
 		Center,
 		Randomize
 	}
+
+    public enum VertOrientation
+    {
+        Center,
+        Bottom,
+        Top,
+        Randomize
+    }
 }

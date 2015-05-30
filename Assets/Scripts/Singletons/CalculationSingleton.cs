@@ -44,7 +44,8 @@ namespace Singleton
 		/// <param name="parentObject">Parent object.</param>
 		/// <param name="objectToPlace">Object to place.</param>
 		/// <param name="getForWall">Get for wall.</param>
-		public void GetPositionForObject(GameObject parentObject, GameObject childToPlace, int getForWall, ObjectOrientation orientation, float overrideYPos = 0)
+        public void GetPositionForObject(GameObject parentObject, GameObject childToPlace, int getForWall, 
+            HorzOrientation horzOrientation = HorzOrientation.Center, VertOrientation vertOrientation = VertOrientation.Center)
 		{
             // Evaluate if renderer is present.
 			Renderer parentRenderer = parentObject.tag == "RenderObject" 
@@ -65,13 +66,31 @@ namespace Singleton
             float childLongSide = childSize.x > childSize.z ? childSize.x : childSize.z;
             float childShortSide = childSize.x > childSize.z ? childSize.z : childSize.x;
             float wallLength = parentSize.x - wallObject.WallStrength * 2;
-            float minWallPlacement = (wallLength / 2) - (childLongSide / 2);
-            float maxWallPlacement = minWallPlacement * -1;
+            float wallHeight = parentSize.y;
+            float minHorzWallPlacement = (wallLength / 2) - (childLongSide / 2);
+            float maxHorzWallPlacement = minHorzWallPlacement * -1;
+            float minVertWallPlacement = (wallHeight / 2) - (childShortSide / 2);
+            float maxVertWallPlacement = minVertWallPlacement * -1;
+
+            float yPos = 0;
+            switch (vertOrientation)
+            {
+                case VertOrientation.Bottom:
+                    yPos -= (wallHeight / 2) - (childShortSide / 2);
+                    break;
+                case VertOrientation.Top:
+                    yPos += (wallHeight / 2) - (childShortSide / 2);
+                    break;
+                case VertOrientation.Randomize:
+                    yPos = Random.Range(minHorzWallPlacement, maxHorzWallPlacement);
+                    break;
+            }
 
             // Set object
             childToPlace.transform.SetParent(wallObject.transform);
-            childToPlace.transform.localPosition = new Vector3((wallObject.WallStrength + (childShortSide / 2)) * -1, overrideYPos,
-            orientation == ObjectOrientation.Center ? 0 : Random.Range(minWallPlacement, maxWallPlacement));
+            childToPlace.transform.localPosition = new Vector3((wallObject.WallStrength + (childShortSide / 2)) * -1,
+                yPos,
+                horzOrientation == HorzOrientation.Center ? 0 : Random.Range(minVertWallPlacement, maxVertWallPlacement));
             childToPlace.transform.localRotation = Quaternion.Euler(new Vector3(0, wallObject.transform.localRotation.y, 0));
         }
 
@@ -241,14 +260,14 @@ namespace Singleton
 		/// <param name="onTopOf">On top of.</param>
 		/// <param name="objectToPlace">Object to place.</param>
 		/// <param name="orientation">Orientation.</param>
-		public GameObject PlaceOnTopOfObject(GameObject onTopOf, GameObject objectToPlace, ObjectOrientation orientation)
+        public GameObject PlaceOnTopOfObject(GameObject onTopOf, GameObject objectToPlace, HorzOrientation orientation)
 		{
             var onTopOfSize = HelperSingleton.Instance.GetSize(onTopOf);
             var objectToPlaceSize = HelperSingleton.Instance.GetSize(objectToPlace);
 			var center = HelperSingleton.Instance.GetCenterOfGameObject(onTopOf);			
 			Vector3 pos;
 
-			if (orientation == ObjectOrientation.Center)
+            if (orientation == HorzOrientation.Center)
 			{
 				pos = new Vector3(center.x - (objectToPlaceSize.x / 2),
 				                      onTopOf.transform.position.y + onTopOfSize.y + 0.1f,
@@ -274,7 +293,7 @@ namespace Singleton
         {
             GameObject result;
 
-            area = area.OrderBy(bk => bk.transform.position.y);
+            area = area.OrderByDescending(bk => bk.transform.position.y);
             result = area.FirstOrDefault(bk => Math.Round(y, 1) >= Math.Round(bk.transform.position.y, 1));
 
             return result;

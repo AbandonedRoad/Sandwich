@@ -90,7 +90,6 @@ namespace Player
 			{
 				_playerWon = false;
 			}
-
 		}
 
 		/// <summary>

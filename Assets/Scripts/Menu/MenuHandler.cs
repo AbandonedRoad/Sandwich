@@ -85,7 +85,8 @@ namespace Menu
             HelperSingleton.Instance.DestroyLevel();
 
 			// int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
-			int seed = 89;
+            var seed = 102;
+            Debug.Log("Last seed: " + seed.ToString());
 			PrefabSingleton.Instance.LevelStartup.Seed = seed;
 			PrefabSingleton.Instance.LevelStartup.StartLevel();
 		}

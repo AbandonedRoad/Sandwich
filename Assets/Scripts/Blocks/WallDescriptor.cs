@@ -16,13 +16,26 @@ namespace Assets.Scripts.Blocks
         
         public float WallStrength = 0.19f;
         
-        public int WallNumber 
+        public int WallNumber
         {
             get 
             { 
                 int number = Convert.ToInt32(this.gameObject.name.Substring(4, 1));
                 return (number - 1); 
             }
+        }
+
+        /// <summary>
+        /// The Length of one Wall
+        /// </summary>
+        public float OuterWallSize = 8f;
+
+        /// <summary>
+        /// The Length of one Wall within the block
+        /// </summary>
+        public float InnerWallSize
+        {
+            get { return OuterWallSize - (2 * WallStrength); }
         }
 
         /// <summary>

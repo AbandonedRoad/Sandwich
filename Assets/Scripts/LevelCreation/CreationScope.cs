@@ -174,25 +174,25 @@ namespace LevelCreation
             var wall1 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 0).First();
             var wall2 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 1).First();
 
-            if (PreviousHorizontalDirection == HorzDirection.Backwards)
+            if (ActualHorizontalDirection == HorzDirection.Backwards)
             {
                 wallToUse = NextHorizontalDirection == HorzDirection.Left
                     ? wall2
                     : wall1;
             }
-            else if (PreviousHorizontalDirection == HorzDirection.Right)
+            else if (ActualHorizontalDirection == HorzDirection.Right)
             {
                 wallToUse = NextHorizontalDirection == HorzDirection.Backwards
                     ? wall2
                     : wall1;
             }
-            else if (PreviousHorizontalDirection == HorzDirection.Forward)
+            else if (ActualHorizontalDirection == HorzDirection.Forward)
             {
                 wallToUse = NextHorizontalDirection == HorzDirection.Right
                     ? wall2
                     : wall1;
             }
-            else if (PreviousHorizontalDirection == HorzDirection.Left)
+            else if (ActualHorizontalDirection == HorzDirection.Left)
             {
                 wallToUse = NextHorizontalDirection == HorzDirection.Forward
                     ? wall2
@@ -200,6 +200,7 @@ namespace LevelCreation
             }
 
             wallToUse.RotateWallFacesDirection(NextHorizontalDirection);
+            wallToUse.transform.parent.gameObject.name = "Act Rot: " + wallToUse.transform.parent.gameObject.transform.rotation.ToString();
         }
 
         /// <summary>
@@ -258,19 +259,28 @@ namespace LevelCreation
 
             if (IsLastArea)
             {
+                // Last area - return the exit.
                 instance = PrefabSingleton.Instance.Create(AreaInfos.HExit, position);
+                return instance;
+            }
+
+            if (NextLevelOrientation == LevelOrientation.Vertical)
+            {
+                instance = ActualLevelOrientation == LevelOrientation.Vertical
+                    ? PrefabSingleton.Instance.Create(AreaInfos.HTransition, position)
+                    : PrefabSingleton.Instance.Create(AreaInfos.VFloorDoor, position);
+
+                if (ActualLevelOrientation == LevelOrientation.Horizontal)
+                {
+                    // Rotate if needed.
+                    var doorWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
+                    doorWall.RotateWallFacesDirection(ActualHorizontalDirection);
+                }
             }
             else
             {
-                if (NextLevelOrientation == LevelOrientation.Vertical)
-                {
-                    instance = PrefabSingleton.Instance.Create(AreaInfos.HTransition, position);
-                }
-                else
-                {
-                    instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
-                    CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
-                }
+                instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
+                CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
             }
 
             return instance;
@@ -288,7 +298,7 @@ namespace LevelCreation
         {
             HorzDirection newHorzDirection = (HorzDirection)Random.Range(0, 4);
 
-            while (newHorzDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection))
+            while (newHorzDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection))
             {
                 newHorzDirection = (HorzDirection)Random.Range(0, 4);
             }
@@ -309,7 +319,7 @@ namespace LevelCreation
             {
                 VertDirection newVertDirection = (VertDirection)Random.Range(0, 2);
 
-                while (newVertDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection))
+                while (newVertDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection))
                 {
                     newVertDirection = (VertDirection)Random.Range(0, 2);
                 }

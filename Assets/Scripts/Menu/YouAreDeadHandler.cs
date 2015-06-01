@@ -74,7 +74,9 @@ namespace Menu
 				PrefabSingleton.Instance.ScreenFader.RestartScene();
 			}
 
-			// PlayerSingleton.Instance.PlayerHealth = PlayerSingleton.Instance.TotalHealth;
+            // TODO: Hier muss ein update auf PlayerUpdates._actualHealth hin, sonst wird man immer wieder den
+            // schwarzen bildschirm kriegen... evtl. ein Reset()?
+			PlayerSingleton.Instance.PlayerHealth = PlayerSingleton.Instance.TotalHealth;
 			SwitchYouAreDeadPanel();
 		}
 

@@ -20,6 +20,11 @@ namespace Singleton
 
         public CreationScope ActualCreationScope { get; set; }
 
+        /// <summary>
+        /// An instance used to determine where a object is to be placed.
+        /// </summary>
+        public OrienationCalc OrientationCalculation { get; set; }
+
 		/// <summary>
 		/// Gets instance
 		/// </summary>
@@ -31,6 +36,7 @@ namespace Singleton
 				{
 					_instance = new CalculationSingleton();
                     _instance.ActualCreationScope = new CreationScope();
+                    _instance.OrientationCalculation = new OrienationCalc();
 				}
 				
 				return _instance;
@@ -44,54 +50,16 @@ namespace Singleton
 		/// <param name="parentObject">Parent object.</param>
 		/// <param name="objectToPlace">Object to place.</param>
 		/// <param name="getForWall">Get for wall.</param>
-        public void GetPositionForObject(GameObject parentObject, GameObject childToPlace, int getForWall, 
-            HorzOrientation horzOrientation = HorzOrientation.Center, VertOrientation vertOrientation = VertOrientation.Center)
+        public void GetPositionForObject(HorzOrientation horzOrientation = HorzOrientation.Center, VertOrientation vertOrientation = VertOrientation.Center)
 		{
-            // Evaluate if renderer is present.
-			Renderer parentRenderer = parentObject.tag == "RenderObject" 
-				? parentObject.GetComponent<Renderer>() 
-				: parentObject.GetComponentsInChildren<Renderer>().ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
-			Renderer childRenderer = childToPlace.tag == "RenderObject" 
-				? childToPlace.GetComponent<Renderer>() 
-				: childToPlace.GetComponentsInChildren<Renderer>().ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
-
-			if (parentRenderer == null) Debug.LogError("No RenderObject found for: " + parentObject.name);
-			if (childRenderer == null) Debug.LogError("No RenderObject found for: " + childToPlace.name);
-
-            // Calculate
-			var parentSize = parentRenderer.bounds.size;
-            var childSize = childRenderer.bounds.size;
-            var wallObject = parentObject.transform.GetComponentsInChildren<WallDescriptor>().First(wl => wl.WallNumber == getForWall);
-
-            float childLongSide = childSize.x > childSize.z ? childSize.x : childSize.z;
-            float childShortSide = childSize.x > childSize.z ? childSize.z : childSize.x;
-            float wallLength = parentSize.x - wallObject.WallStrength * 2;
-            float wallHeight = parentSize.y;
-            float minHorzWallPlacement = (wallLength / 2) - (childLongSide / 2);
-            float maxHorzWallPlacement = minHorzWallPlacement * -1;
-            float minVertWallPlacement = (wallHeight / 2) - (childShortSide / 2);
-            float maxVertWallPlacement = minVertWallPlacement * -1;
-
-            float yPos = 0;
-            switch (vertOrientation)
-            {
-                case VertOrientation.Bottom:
-                    yPos -= (wallHeight / 2) - (childShortSide / 2);
-                    break;
-                case VertOrientation.Top:
-                    yPos += (wallHeight / 2) - (childShortSide / 2);
-                    break;
-                case VertOrientation.Randomize:
-                    yPos = Random.Range(minHorzWallPlacement, maxHorzWallPlacement);
-                    break;
-            }
+            float childShortSide = OrientationCalculation.ChildSize.x > OrientationCalculation.ChildSize.z ? OrientationCalculation.ChildSize.z : OrientationCalculation.ChildSize.x;
 
             // Set object
-            childToPlace.transform.SetParent(wallObject.transform);
-            childToPlace.transform.localPosition = new Vector3((wallObject.WallStrength + (childShortSide / 2)) * -1,
-                yPos,
-                horzOrientation == HorzOrientation.Center ? 0 : Random.Range(minVertWallPlacement, maxVertWallPlacement));
-            childToPlace.transform.localRotation = Quaternion.Euler(new Vector3(0, wallObject.transform.localRotation.y, 0));
+            OrientationCalculation.Child.transform.SetParent(OrientationCalculation.Wall.transform);
+            OrientationCalculation.Child.transform.localPosition = new Vector3((OrientationCalculation.Wall.WallStrength + (childShortSide / 2)) * -1,
+                OrientationCalculation.YPos,
+                OrientationCalculation.ZPos);
+            OrientationCalculation.Child.transform.localRotation = Quaternion.Euler(new Vector3(0, OrientationCalculation.Wall.transform.localRotation.y, 0));
         }
 
 		/// <summary>

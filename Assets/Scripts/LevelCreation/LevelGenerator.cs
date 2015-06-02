@@ -198,12 +198,23 @@ namespace LevelCreation
 					range = i == areaCount - 1 && transitionInfo == null ? 1 : 0;
 
 					// Create a Transition block, if random fits. If in the last loop no transition was created yet, create one in every case.
-					levelBlock = range == 1
-                        ? CalculationSingleton.Instance.ActualCreationScope.IsLastArea
-                            ? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.VExit, pos)
-                            : PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.VTransition, pos)
-                        : PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.VBlock, pos);
-					transitionInfo = range == 1 ? levelBlock : transitionInfo;
+                    if (range == 1)
+                    {
+                        if (CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal)
+                        {
+                            levelBlock = CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos);
+                        }
+                        else
+                        {
+                            levelBlock = CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);
+                        }
+
+                        transitionInfo = levelBlock;
+                    }
+                    else
+                    {
+                        levelBlock = PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.VBlock, pos);
+                    }
 				}
 				else
 				{

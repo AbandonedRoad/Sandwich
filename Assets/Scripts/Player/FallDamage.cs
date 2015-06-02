@@ -34,7 +34,10 @@ namespace Player
 			if(_fallDistance >= 5 && _playerController.isGrounded)
 			{
 				var damage = (_fallDistance / CalculationSingleton.Instance.JumpDistance);
-				PlayerSingleton.Instance.PlayerHealth -= Convert.ToInt32(damage) - 2;
+                var remaining = PlayerSingleton.Instance.PlayerHealth - Convert.ToInt32(damage) - 2;
+				PlayerSingleton.Instance.PlayerHealth = remaining < 0
+                    ? 0
+                    : remaining;
 				ApplyNormal();
 			}
 			

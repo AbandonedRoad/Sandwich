@@ -156,6 +156,15 @@ namespace Player
 				heartNumber++;
 			}
 		}
-	}
+
+        /// <summary>
+        /// Applies Player health back.
+        /// </summary>
+        public void ApplyHealth()
+        {
+            _actualHealth = PlayerSingleton.Instance.PlayerHealth;
+            CreateHearts();
+        }
+    }
 }
 

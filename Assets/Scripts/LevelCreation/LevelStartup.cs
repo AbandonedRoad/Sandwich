@@ -31,6 +31,7 @@ namespace LevelCreation
 				_levelGenerator.CreateNewLevel();
 
 				PrefabSingleton.Instance.Player.GetComponent<FallDamage>().ApplyNormal();
+                PrefabSingleton.Instance.Player.GetComponent<PlayerUpdates>().ApplyHealth();
 				PrefabSingleton.Instance.Player.transform.position = new Vector3(0, 1.813f, 0);
 			}
 			else

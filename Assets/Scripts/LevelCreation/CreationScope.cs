@@ -261,34 +261,55 @@ namespace LevelCreation
             {
                 // Last area - return the exit.
                 instance = PrefabSingleton.Instance.Create(AreaInfos.HExit, position);
+
+                // Rotate the Exit correct, if it was created.
+                var exitWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Exit);
+                exitWall.RotateTo(CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection);
+
                 return instance;
             }
 
-            if (NextLevelOrientation == LevelOrientation.Vertical)
-            {
-                instance = ActualLevelOrientation == LevelOrientation.Vertical
-                    ? PrefabSingleton.Instance.Create(AreaInfos.HTransition, position)
-                    : PrefabSingleton.Instance.Create(AreaInfos.VFloorDoor, position);
-
-                if (ActualLevelOrientation == LevelOrientation.Horizontal)
-                {
-                    // Rotate if needed.
-                    var doorWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
-                    doorWall.RotateWallFacesDirection(ActualHorizontalDirection);
-                }
-            }
-            else
+            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Horizontal)
             {
                 instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
                 CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
+            }
+            else
+            {
+                instance = PrefabSingleton.Instance.Create(AreaInfos.VTransition, position);
             }
 
             return instance;
         }
 
-        public GameObject GetVerticalTransition(Vector3 pos)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public GameObject GetVerticalTransition(Vector3 position)
         {
-            return GetHorizontalTranstion(pos);
+            GameObject instance = null;
+
+            if (IsLastArea)
+            {
+                // Last area - return the exit.
+                instance = PrefabSingleton.Instance.Create(AreaInfos.VExit, position);
+                return instance;
+            }
+
+            instance = ActualLevelOrientation == LevelOrientation.Vertical
+                ? PrefabSingleton.Instance.Create(AreaInfos.VTransition, position)
+                : PrefabSingleton.Instance.Create(AreaInfos.VFloorDoor, position);
+
+            if (ActualLevelOrientation == LevelOrientation.Horizontal)
+            {
+                // Rotate if needed.
+                var doorWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
+                doorWall.RotateWallFacesDirection(ActualHorizontalDirection);
+            }
+
+            return instance;
         }
 
         /// <summary>

@@ -15,6 +15,7 @@ namespace Singleton
 		public KeyCode Backwards {get; private set;}
 		public KeyCode Left {get; private set;}
 		public KeyCode Right {get; private set;}
+        public GameObject Player { get; private set; }
 
 		private static PlayerSingleton _instance;
 
@@ -71,8 +72,10 @@ namespace Singleton
 			Crouch = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("CROUCH"));
 			Forward = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("FORWARD"));
 			Backwards = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("BACKWARD"));
-			Left = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("LEFT")) ; ;
-			Right = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("RIGHT")) ; ;
+			Left = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("LEFT"));
+			Right = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("RIGHT"));
+
+            Player = GameObject.Find("Player");
 		}	
 	}
 }

@@ -13,7 +13,6 @@ namespace Singleton
 	{
 		private static PrefabSingleton _instance;
 
-		public GameObject Player {get; private set;}
 		public GameObject VertRedBricks {get; private set;}
 		public GameObject VertRedBricksDoor {get; private set;}
 		public GameObject VertRedBricksDoorFloor {get; private set;}
@@ -25,6 +24,8 @@ namespace Singleton
 		public GameObject HorzRedBricksExitPrefab {get; private set;}
 		public GameObject HorzRedBricksEnd {get; private set;}
         public GameObject HorzRedBricksCornerPrefab { get; private set; }
+
+        public GameObject Roller { get; private set; }
 
 		public GameObject MetalPipeRoof {get; private set;}
 		public GameObject RectStandBlock {get; private set;}
@@ -38,7 +39,6 @@ namespace Singleton
 		public Transform PickupParent {get; private set;}
 		public Transform LevelParent {get; private set;}
 		public Transform StandBlockParent {get; private set;}
-		public Transform LightsParent {get; private set;}
 		public Transform CeillingParent {get; private set;}
         public Transform DebugParent {get; private set;}
 		public SceneFadeInOut ScreenFader {get; private set;}
@@ -70,8 +70,6 @@ namespace Singleton
 		/// </summary>
 		public void Init ()
 		{
-			Player = GameObject.Find("Player");
-
 			Screams = new Dictionary<int, AudioClip>();
 			Screams.Add(0, Resources.Load("Sounds/Scream1") as AudioClip);
 			Screams.Add(1, Resources.Load("Sounds/Scream2") as AudioClip);
@@ -99,6 +97,9 @@ namespace Singleton
 			HorzRedBricksExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksExitPrefab") as GameObject;
             HorzRedBricksCornerPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksCornerPrefab") as GameObject;
 
+            // Enemies
+            Roller = Resources.Load("Prefabs/Enemies/RollerPrefab") as GameObject;
+
 			// Roof
 			MetalPipeRoof = Resources.Load("Prefabs/LevelBlocks/FliesenCeilingPrefab") as GameObject;
 
@@ -115,7 +116,6 @@ namespace Singleton
 			PickupParent = GameObject.Find ("_Pickups").transform;
 			LevelParent = GameObject.Find ("_Levels").transform;
 			StandBlockParent = GameObject.Find ("_Stands").transform;
-			LightsParent = GameObject.Find ("_Lights").transform;
 			CeillingParent = GameObject.Find ("_Ceilling").transform;
             DebugParent = GameObject.Find("_Debug").transform;
 

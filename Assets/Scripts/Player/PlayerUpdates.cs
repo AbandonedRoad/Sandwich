@@ -38,8 +38,6 @@ namespace Player
 			_audioSourcesBone = this.gameObject.AddComponent(typeof(AudioSource)) as AudioSource;
 			_audioSourcesMisc = this.gameObject.AddComponent(typeof(AudioSource)) as AudioSource;
 			_coinsText = GameObject.Find("CoinText").GetComponent<Text>();
-
-			CreateHearts();
 		}
 
 		/// <summary>
@@ -47,13 +45,17 @@ namespace Player
 		/// </summary>
 		void Update()
 		{
-			// Player Fell
+			// Player recieved damage
 			if (_actualHealth > PlayerSingleton.Instance.PlayerHealth)
 			{
 				int boneBreak = Random.Range(0, 3);
 				int scream = Random.Range(0, 2);
 
-				_audioSourcesBone.PlayOneShot(PrefabSingleton.Instance.BoneBreak[boneBreak]);
+                if (Random.Range(0, 3) == 0)
+                {
+                    // Play bone break sound only under certain circumstances.
+                    _audioSourcesBone.PlayOneShot(PrefabSingleton.Instance.BoneBreak[boneBreak]);
+                }
 				_audioSourcesScream.PlayOneShot(PrefabSingleton.Instance.Screams[scream]);
 
 				CreateHearts();
@@ -160,7 +162,7 @@ namespace Player
         /// <summary>
         /// Applies Player health back.
         /// </summary>
-        public void ApplyHealth()
+        public void ResetHealth()
         {
             _actualHealth = PlayerSingleton.Instance.PlayerHealth;
             CreateHearts();

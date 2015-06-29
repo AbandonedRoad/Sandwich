@@ -41,9 +41,9 @@ namespace LevelCreation
 			{
                 CalculationSingleton.Instance.ActualCreationScope.IsLastArea = i == levelAreaAmount - 1;
 
-				int areaCount = Random.Range(5, 7);
                 if (CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation == LevelOrientation.Vertical)
 				{
+                    int areaCount = Random.Range(3, 4);
                     if (CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection == VertDirection.NotSet)
                     {
                         // Preset, if not done yet - If the level is just starting, we need to go up here!
@@ -57,6 +57,7 @@ namespace LevelCreation
 				}
 				else
 				{
+                    int areaCount = Random.Range(3, 7);
                     if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.NotSet)
                     {
                         // Preset, if not done yet.
@@ -155,6 +156,8 @@ namespace LevelCreation
 				// Remind the first and teh last block in order to create lights nad plates afterwards
 				transitonBlock = i == 0 ? levelBlock : transitonBlock;
 				endBlock = i == areaCount -1 ? levelBlock : endBlock;
+
+                AddEnemey(levelBlock);
 			}
 
 			// Decide which object to place - do not place on ground floor.
@@ -163,6 +166,21 @@ namespace LevelCreation
 			// Return result
 			return result;
 		}
+
+        /// <summary>
+        /// Adds an enemy to an Horizinotal block
+        /// </summary>
+        /// <param name="levelBlock"></param>
+        private void AddEnemey(GameObject levelBlock)
+        {
+            if (Random.Range(0, 5) == 0)
+            {
+                Vector3 position = new Vector3(levelBlock.transform.position.x, levelBlock.transform.position.y + .5f, levelBlock.transform.position.z);
+                
+                // Add an enemy if needed
+                PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Roller, position);
+            }
+        }
 
 		/// <summary>
 		/// Creates the level blocks.
@@ -191,7 +209,7 @@ namespace LevelCreation
 				                          transitonBlock == null ? 0 : transitonBlock.transform.position.z);
 
 				GameObject levelBlock = null;
-				if (i >= (areaCount - 3))
+				if (i >= (areaCount - 2))
 				{
 					// Determine if we build a transition block
 					int range = Random.Range(0, 2);
@@ -256,14 +274,14 @@ namespace LevelCreation
 
             foreach (var levelBlock in _actualArea)
             {
-                List<int> compareList = new List<int> { 0, 1, 2, 3};
-				List<int> wallsUsed = new List<int>();
+                List<int> wallsUsed = new List<int>();
 
                 var walls = levelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.Descriptor == WallDescription.Wall);
                 int wallCount = walls.Count() == 4 ? 3 : walls.Count();
                 for (int i = 0; i < 2; i++)
                 {
-                    VertOrientation verticalOrientation = i == 0
+                    var remainingWalls = walls.ToList();
+                    VertOrientation verticalOrientation = i == 1
                         ? VertOrientation.Center
                         : VertOrientation.Top;
                     for (int stand = 0; stand < wallCount; stand++)
@@ -272,16 +290,22 @@ namespace LevelCreation
                         int wall;
                         while (true)
                         {
-                            wall = Math.Abs(Random.Range(0, 4));
+                            wall = Random.Range(0, 4);
                             if (!walls.Any(wl => wl.WallNumber == wall))
                             {
                                 // Continue because we have a door/nothing/exit in the wall we want to place the object in
                                 continue;
                             }
 
-                            if (!wallsUsed.Contains(wall))
+                            if (remainingWalls.Any(wl => wl.WallNumber == wall))
                             {
-                                wallsUsed.Add(wall);
+                                remainingWalls = remainingWalls.Where(wl => wl.WallNumber != wall).ToList();
+                                break;
+                            }
+
+                            if (!remainingWalls.Any())
+                            {
+                                // List is empty
                                 break;
                             }
                         }
@@ -291,11 +315,16 @@ namespace LevelCreation
                         CalculationSingleton.Instance.GetPositionForObject(HorzOrientation.Randomize, verticalOrientation);
                         CreateCoin(standBlock, HorzOrientation.Center);
                     }
-                    wallsUsed = new List<int>();
-                }
 
-				IEnumerable<int> unusedWall = compareList.Except(wallsUsed);
-				CreateLights(levelBlock, unusedWall.First());
+                    if (verticalOrientation == VertOrientation.Top)
+                    {
+                        // Place light
+                        if (remainingWalls.Any())
+                        {
+                            CreateLights(levelBlock, remainingWalls.First().WallNumber);
+                        }
+                    }
+                }			
             }
 		}
 
@@ -369,11 +398,11 @@ namespace LevelCreation
 			}
 			else
 			{
-                var wallDoors = HelperSingleton.Instance.GetAllRealWalls(levelBlock);
-                foreach (var wallNumber in wallDoors)
+                var walls = HelperSingleton.Instance.GetAllRealWalls(levelBlock);
+                foreach (var wallObject in walls)
                 {
                     var light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
-                    CalculationSingleton.Instance.OrientationCalculation.Init(wallNumber, light);
+                    CalculationSingleton.Instance.OrientationCalculation.Init(wallObject, light);
                     CalculationSingleton.Instance.GetPositionForObject();
                 }
 			}

@@ -15,8 +15,8 @@ namespace Player
 		// Use this for initialization
 		void Start () 
 		{
-			_playerController = PrefabSingleton.Instance.Player.GetComponent<CharacterController>();
-			_playerTranform = PrefabSingleton.Instance.Player.transform;
+            _playerController = PlayerSingleton.Instance.Player.GetComponent<CharacterController>();
+            _playerTranform = PlayerSingleton.Instance.Player.transform;
 		}
 		
 		/// <summary>

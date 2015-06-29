@@ -197,11 +197,6 @@ namespace Singleton
             }
 
             instance.transform.parent = PrefabSingleton.Instance.LevelParent;
-
-            Vector3 size = HelperSingleton.Instance.GetSize(instance);
-            float zValue = lastTransition.transform.position.z;
-            float xValue = lastTransition.transform.position.x;
-
             instance.transform.position = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForHorizontalStart();
 
             HelperSingleton.Instance.CreateDebugGOAtPosition(

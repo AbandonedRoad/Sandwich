@@ -150,7 +150,6 @@ namespace Singletons
 		{
             PrefabSingleton.Instance.CeillingParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
 			PrefabSingleton.Instance.LevelParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
-			PrefabSingleton.Instance.LightsParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
 			PrefabSingleton.Instance.PickupParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
 			PrefabSingleton.Instance.StandBlockParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
             PrefabSingleton.Instance.DebugParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));

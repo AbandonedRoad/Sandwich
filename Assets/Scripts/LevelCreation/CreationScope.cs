@@ -168,8 +168,6 @@ namespace LevelCreation
         /// <returns></returns>
         public void CalculateRotationForHorizontalCorner()
         {
-            Vector3 result = new Vector3(0, 0, 0);
-
             WallDescriptor wallToUse = null;
             var wall1 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 0).First();
             var wall2 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 1).First();
@@ -269,10 +267,20 @@ namespace LevelCreation
                 return instance;
             }
 
-            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Horizontal)
+            if (CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation == LevelOrientation.Horizontal)
             {
-                instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
-                CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
+                if (CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection != CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
+                {
+                    // Direction differs - create a corner.
+                    instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
+                    CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
+                }
+                else
+                {
+                    // They do not differ - just create a block.
+                    instance = PrefabSingleton.Instance.Create(AreaInfos.HBlock, position);
+                    CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
+                }              
             }
             else
             {

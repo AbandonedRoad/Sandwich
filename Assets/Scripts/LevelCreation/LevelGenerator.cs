@@ -90,28 +90,13 @@ namespace LevelCreation
 			
 			// If we gave a block into this function, we already have transition - skip the first one.
 			int start = (transitonBlock == null ? 0 : 1) ;
-            var blockSize = HelperSingleton.Instance.GetSize(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HBlock);
+            var previousBlockSize = HelperSingleton.Instance.GetSize(CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock);
+            var previousPosition = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position;
 			for (int i = start; i < areaCount; i++)
 			{
-				// Create block
-                float x = 0;
-                float z = 0;
-                if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
-                    || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left)
-                {
-                    int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left ? 1 : -1;
-                    x = transitonBlock == null ? (i * blockSize.x) * dirMulti : transitonBlock.transform.position.x + (i * blockSize.x * dirMulti);
-                    z = transitonBlock == null ? 0 : transitonBlock.transform.position.z;
-                }
-                else if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
-                    || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
-                {
-                    int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward ? 1 : -1;
-                    x = transitonBlock == null ? 0 : transitonBlock.transform.position.x;
-                    z = transitonBlock == null ? (i * blockSize.z) * dirMulti : transitonBlock.transform.position.z + (i * blockSize.z * dirMulti);
-                }
+                // Gets the next position for the next horizontal block
+                var pos = HelperSingleton.Instance.GetNextHorizonzalPositon(transitonBlock, CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HBlock);
 
-				Vector3 pos = new Vector3(x, transitonBlock == null ? 0 : transitonBlock.transform.position.y, z);		
 				GameObject levelBlock = null;
 				if (i >= (areaCount - 3))
 				{
@@ -122,15 +107,9 @@ namespace LevelCreation
 					// Create a Transition block, if random fits. If in the last loop no transition was created yet, create one in every case.
                     if (range == 1)
                     {
-                        if (CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal)
-                        {
-                            levelBlock = CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos);
-                        }
-                        else
-                        {
-                            levelBlock = CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);
-                        }
-                        
+                        levelBlock = CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal
+                            ? CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos)
+                            : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);                       
                         result = levelBlock; 
                     }
                     else

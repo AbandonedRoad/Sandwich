@@ -204,7 +204,7 @@ namespace Singletons
         /// <param name="block"></param>
         /// <param name="specificWall"></param>
         /// <returns></returns>
-        public IEnumerable<WallDescriptor> GetAllDoorWalls(GameObject block)
+        public IEnumerable<WallDescriptor> GetAllWallsOfType(GameObject block, WallDescription type)
         {
             if (block == null)
             {
@@ -213,8 +213,8 @@ namespace Singletons
             }
 
             var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
-            
-            return wallDescriptors.Where(wd => wd.Descriptor == WallDescription.Door).ToList();
+
+            return wallDescriptors.Where(wd => wd.Descriptor == type).ToList();
         }
 
         /// <summary>
@@ -275,6 +275,40 @@ namespace Singletons
             {
                 return VertDirection.Down;
             }
+        }
+
+        /// <summary>
+        /// Returns the next positon for the next Horizontal element, which has been created.
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 GetNextHorizonzalPositon(GameObject transitonBlock, GameObject nextItem)
+        {
+            var lastBlockSize = HelperSingleton.Instance.GetSize(CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock);
+            var lastPosition = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position;
+            var blockSize = HelperSingleton.Instance.GetSize(nextItem);
+
+            // Create block
+            float x = 0;
+            float z = 0;
+            if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
+                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left)
+            {
+                int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left ? 1 : -1;
+                x = lastPosition.x + (lastBlockSize.x * dirMulti);
+
+                // Get correct exit - sort all possible exit and 
+                // TODO: Get correct exit
+                z = transitonBlock == null ? 0 : transitonBlock.transform.position.z;
+            }
+            else if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
+                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
+            {
+                int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward ? 1 : -1;
+                x = transitonBlock == null ? 0 : transitonBlock.transform.position.x;
+                z = lastPosition.z + (lastBlockSize.z * dirMulti);
+            }
+
+            return new Vector3(x, transitonBlock == null ? 0 : transitonBlock.transform.position.y, z);		
         }
 
         /// <summary>

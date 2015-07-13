@@ -85,7 +85,7 @@ namespace Singleton
 				return null;
 			}
 
-            var wallDoors = HelperSingleton.Instance.GetAllDoorWalls(lastTransition);
+            var wallDoors = HelperSingleton.Instance.GetAllWallsOfType(lastTransition, WallDescription.Door);
 
             GameObject instance;
             if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical)

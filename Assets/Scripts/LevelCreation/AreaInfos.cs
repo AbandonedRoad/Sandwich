@@ -8,7 +8,9 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace LevelCreation
 {
@@ -22,9 +24,30 @@ namespace LevelCreation
 		public GameObject VExit {get; set;}
 
 		public GameObject HFloor {get; set;} 
-		public GameObject HBlock {get; set;} 
+		public List<GameObject> HBlock {get; set;} 
 		public GameObject HTransition {get; set;} 
 		public GameObject HExit {get; set;}
         public GameObject HCorner { get; set; }
+
+        /// <summary>
+        /// Gets a HBLock entry by random
+        /// </summary>
+        /// <returns></returns>
+        public GameObject GetHBlock()
+        {
+            int max = 20 + HBlock.Count;
+            int range = Random.Range(0, max);
+
+            if (range < 20)
+            {
+                // Return default block
+                return HBlock[0];
+            }
+            else
+            {
+                // Return a special block
+                return HBlock[range - 19];
+            }
+        }
 	}
 }

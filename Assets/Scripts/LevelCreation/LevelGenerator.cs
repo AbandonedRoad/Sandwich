@@ -90,13 +90,11 @@ namespace LevelCreation
 			
 			// If we gave a block into this function, we already have transition - skip the first one.
 			int start = (transitonBlock == null ? 0 : 1) ;
-            var previousBlockSize = HelperSingleton.Instance.GetSize(CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock);
-            var previousPosition = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position;
 			for (int i = start; i < areaCount; i++)
 			{
                 // Gets the next position for the next horizontal block
-                var pos = HelperSingleton.Instance.GetNextHorizonzalPositon(transitonBlock, CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HBlock);
-
+                var blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.GetHBlock();
+                var pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
 				GameObject levelBlock = null;
 				if (i >= (areaCount - 3))
 				{
@@ -110,13 +108,14 @@ namespace LevelCreation
                         levelBlock = CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal
                             ? CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos)
                             : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);                       
-                        result = levelBlock; 
+                        result = levelBlock;
                     }
                     else
                     {
-                        levelBlock = PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HBlock, pos);
+                        levelBlock = PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                         CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                     }
+                    HelperSingleton.Instance.AdaptPositonForExit();
 				}
 				else
 				{
@@ -125,7 +124,7 @@ namespace LevelCreation
 						? transitonBlock != null
                             ? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
                             : PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
-                            : PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HBlock, pos);
+                            : PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
 				}
 				
@@ -197,14 +196,9 @@ namespace LevelCreation
 					// Create a Transition block, if random fits. If in the last loop no transition was created yet, create one in every case.
                     if (range == 1)
                     {
-                        if (CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal)
-                        {
-                            levelBlock = CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos);
-                        }
-                        else
-                        {
-                            levelBlock = CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);
-                        }
+                        levelBlock = CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal
+                            ? CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos)
+                            : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);
 
                         transitionInfo = levelBlock;
                     }

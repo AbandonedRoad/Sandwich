@@ -213,7 +213,6 @@ namespace Singletons
             }
 
             var wallDescriptors = block.GetComponentsInChildren<WallDescriptor>();
-
             return wallDescriptors.Where(wd => wd.Descriptor == type).ToList();
         }
 
@@ -281,8 +280,11 @@ namespace Singletons
         /// Returns the next positon for the next Horizontal element, which has been created.
         /// </summary>
         /// <returns></returns>
+        [Obsolete("Not needed anymore! Use 'CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal'", true)]
         public Vector3 GetNextHorizonzalPositon(GameObject transitonBlock, GameObject nextItem)
         {
+            transitonBlock = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock;
+
             var lastBlockSize = HelperSingleton.Instance.GetSize(CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock);
             var lastPosition = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position;
             var blockSize = HelperSingleton.Instance.GetSize(nextItem);
@@ -295,9 +297,6 @@ namespace Singletons
             {
                 int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left ? 1 : -1;
                 x = lastPosition.x + (lastBlockSize.x * dirMulti);
-
-                // Get correct exit - sort all possible exit and 
-                // TODO: Get correct exit
                 z = transitonBlock == null ? 0 : transitonBlock.transform.position.z;
             }
             else if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
@@ -334,6 +333,69 @@ namespace Singletons
             return renderer != null
                 ? renderer.bounds.size
                 : Vector3.one;
+        }
+
+        /// <summary>
+        /// Adapts the Position so that the created item fits the exit of the previous item
+        /// </summary>
+        public void AdaptPositonForExit()
+        {
+            GameObject previousItem = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock;
+            var allWallsWithExitPrevious = this.GetAllWallsOfType(CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock, WallDescription.Nothing);
+            var allWallsWithExitActual = this.GetAllWallsOfType(CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock, WallDescription.Nothing);
+
+            if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
+                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left)
+            {
+                var exitWallPrevExit = allWallsWithExitPrevious.OrderBy(wall => wall.transform.position.x).LastOrDefault();
+                // var exitWallActExit = allWallsWithExitActual.OrderBy(wall => wall.transform.position.x).LastOrDefault();
+                var exitWallActEntry = allWallsWithExitActual.OrderBy(wall => wall.transform.position.x).FirstOrDefault();
+                if (exitWallPrevExit != null && exitWallActEntry != null)
+                {
+                    var actPos = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position;
+                    if (IsOppositeWall(exitWallPrevExit, exitWallActEntry))
+                    {
+                        // The exit is on the oder side of the block - adapt Z Position for actual created item
+                        // Calculate for the übergang between the old and actual block
+                        var difference = Math.Abs(exitWallActEntry.transform.localPosition.z) + Math.Abs(exitWallPrevExit.transform.localPosition.z);
+                        float newZ = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - difference;
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, actPos.y, newZ);
+                    }
+                    else
+                    {
+                        // The exit is not on the oder side of the block, but on a side- adapt X Position for actual created item
+                        float newZ = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - Math.Abs(exitWallPrevExit.transform.localPosition.z);
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, actPos.y, newZ);
+                    }
+                }
+            }
+            else if (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
+                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
+            {
+                var exitWallPrevExit = allWallsWithExitPrevious.OrderBy(wall => wall.transform.position.z).LastOrDefault();
+                // var exitWallActExit = allWallsWithExitActual.OrderBy(wall => wall.transform.position.z).LastOrDefault();
+                var exitWallActEntry = allWallsWithExitActual.OrderBy(wall => wall.transform.position.z).FirstOrDefault();
+                if (exitWallPrevExit != null && exitWallActEntry != null && IsOppositeWall(exitWallPrevExit, exitWallActEntry))
+                {
+                    // Adapt Z Position for actual created item
+                    var actPos = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position;
+
+                    // Calculate for the übergang between the old and actual block
+                    var difference = Math.Abs(exitWallActEntry.transform.localPosition.z) + Math.Abs(exitWallPrevExit.transform.localPosition.z);
+                    float newX = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x - difference;
+                    CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, actPos.y, actPos.z);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if the both Wall Descriptors are opposite of each other.
+        /// </summary>
+        /// <param name="descriptorA"></param>
+        /// <param name="descriptorB"></param>
+        public bool IsOppositeWall(WallDescriptor descriptorA, WallDescriptor descriptorB)
+        {
+            return Math.Abs(descriptorA.WallNumber - descriptorB.WallNumber) == 2;
         }
     }
 }

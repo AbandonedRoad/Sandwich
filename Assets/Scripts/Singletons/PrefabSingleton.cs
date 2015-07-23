@@ -20,6 +20,7 @@ namespace Singleton
 		public GameObject VertRedBricksExit {get; private set;}
 
 		public GameObject HorzRedBricks {get; private set;}
+        public GameObject HorzRedBricksSpec1 { get; private set; }
 		public GameObject HorzRedBricksDoorPrefab {get; private set;}
 		public GameObject HorzRedBricksExitPrefab {get; private set;}
 		public GameObject HorzRedBricksEnd {get; private set;}
@@ -92,6 +93,7 @@ namespace Singleton
 
 			// Level Parts - Horizontal
 			HorzRedBricks = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksPrefab") as GameObject;
+            HorzRedBricksSpec1 = Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom1Prefab") as GameObject;
 			HorzRedBricksEnd = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksEndPrefab") as GameObject;
 			HorzRedBricksDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksDoorPrefab") as GameObject;
 			HorzRedBricksExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksExitPrefab") as GameObject;
@@ -152,7 +154,7 @@ namespace Singleton
 					VExit = VertRedBricksExit,
 
 					HFloor = HorzRedBricks,
-					HBlock = HorzRedBricks,
+					HBlock = new List<GameObject> { HorzRedBricks, HorzRedBricksSpec1 },
 					HTransition = HorzRedBricksDoorPrefab,
 					HExit = HorzRedBricksExitPrefab,
                     HCorner = HorzRedBricksCornerPrefab

@@ -102,7 +102,7 @@ namespace Singleton
             }
             else
             {
-                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HBlock);
+                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.GetHBlock());
             }
 
             instance.transform.parent = parent;
@@ -177,27 +177,13 @@ namespace Singleton
             }
             else
             {
-                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HBlock);
+                instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.GetHBlock());
                 CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
-
-                /*
-                if (CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection == CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
-                {
-                    // Direction did not change - create a regular block.
-                    instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HBlock);
-                    instance.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
-                }
-                else
-                {
-                    // Direction changed - but crner
-                    instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HCorner);
-                    instance.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForHorizontalCorner();
-                }
-                */
             }
 
             instance.transform.parent = PrefabSingleton.Instance.LevelParent;
-            instance.transform.position = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForHorizontalStart();
+            instance.transform.position = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal();
+            HelperSingleton.Instance.AdaptPositonForExit();
 
             HelperSingleton.Instance.CreateDebugGOAtPosition(
                   "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine

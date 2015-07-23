@@ -205,27 +205,42 @@ namespace LevelCreation
         /// Gets the next position for the actual Horizontal Block
         /// </summary>
         /// <returns></returns>
-        public Vector3 CalculatePositionForHorizontalStart()
+        public Vector3 CalculatePositionForNextHorizontal(GameObject toBeCreated = null)
         {
             Vector3 result = new Vector3(0, 0, 0);
 
-            GameObject previousInstance = this.PreviouslyCreatedLevelBlock;
-            GameObject actualInstace = this.ActualCreatedLevelBlock;
-            Vector3 actualSize = HelperSingleton.Instance.GetSize(actualInstace);
+            GameObject previousInstance;
+            GameObject actualInstace;
+            if (toBeCreated == null)
+            {
+                previousInstance = this.PreviouslyCreatedLevelBlock;
+                actualInstace = this.ActualCreatedLevelBlock;
+            }
+            else
+            {
+                previousInstance = this.ActualCreatedLevelBlock;
+                actualInstace = toBeCreated;
+            }
+
+            Vector3 previousSize = previousInstance != null ? HelperSingleton.Instance.GetSize(previousInstance) : Vector3.zero;
+            Vector3 actualSize = actualInstace != null ? HelperSingleton.Instance.GetSize(actualInstace) : Vector3.zero;
+
+            Vector3 previousPos = previousInstance != null ? previousInstance.transform.position : Vector3.zero;
+            Vector3 actualPos = actualInstace != null ? actualInstace.transform.position : Vector3.zero;
 
             switch (this.ActualHorizontalDirection)
             {
                 case HorzDirection.Backwards:
-                    result = new Vector3(previousInstance.transform.position.x, previousInstance.transform.position.y, previousInstance.transform.position.z - actualSize.z);
+                    result = new Vector3(previousPos.x, previousPos.y, previousPos.z - ((previousSize.z / 2) + (actualSize.z / 2)));
                     break;
                 case HorzDirection.Forward:
-                    result = new Vector3(previousInstance.transform.position.x, previousInstance.transform.position.y, previousInstance.transform.position.z + actualSize.z);
+                    result = new Vector3(previousPos.x, previousPos.y, previousPos.z + (previousSize.z / 2) + (actualSize.z / 2));
                     break;
                 case HorzDirection.Left:
-                    result = new Vector3(previousInstance.transform.position.x + actualSize.x, previousInstance.transform.position.y, previousInstance.transform.position.z);
+                    result = new Vector3(previousPos.x + (previousSize.x / 2) + (actualSize.x/ 2), previousPos.y, previousPos.z);
                     break;
                 case HorzDirection.Right:
-                    result = new Vector3(previousInstance.transform.position.x - actualSize.x, previousInstance.transform.position.y, previousInstance.transform.position.z);
+                    result = new Vector3(previousPos.x - ((previousSize.x / 2) + (actualSize.x / 2)), previousPos.y, previousPos.z);
                     break;
             }
 
@@ -257,19 +272,12 @@ namespace LevelCreation
 
             if (IsLastArea)
             {
-                // Last area - return the exit.
-                instance = PrefabSingleton.Instance.Create(AreaInfos.HExit, position);
-
-                // Rotate the Exit correct, if it was created.
-                var exitWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Exit);
-                exitWall.RotateTo(CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection);
-
-                return instance;
+                return CreateExit(position);
             }
 
             if (CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation == LevelOrientation.Horizontal)
             {
-                if (CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection != CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
+                if (CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection != CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
                 {
                     // Direction differs - create a corner.
                     instance = PrefabSingleton.Instance.Create(AreaInfos.HCorner, position);
@@ -278,7 +286,8 @@ namespace LevelCreation
                 else
                 {
                     // They do not differ - just create a block.
-                    instance = PrefabSingleton.Instance.Create(AreaInfos.HBlock, position);
+                    instance = PrefabSingleton.Instance.Create(AreaInfos.GetHBlock(), position);
+                    HelperSingleton.Instance.AdaptPositonForExit();
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                 }              
             }
@@ -301,9 +310,7 @@ namespace LevelCreation
 
             if (IsLastArea)
             {
-                // Last area - return the exit.
-                instance = PrefabSingleton.Instance.Create(AreaInfos.VExit, position);
-                return instance;
+                return CreateExit(position);
             }
 
             instance = ActualLevelOrientation == LevelOrientation.Vertical
@@ -355,6 +362,29 @@ namespace LevelCreation
 
                 CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection = newVertDirection;
             }
+        }
+
+        /// <summary>
+        /// Creates the exit for this level.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        private GameObject CreateExit(Vector3 position)
+        {
+            // Last area - return the exit.
+            GameObject instance = CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical
+                ? PrefabSingleton.Instance.Create(AreaInfos.VExit, position)
+                : PrefabSingleton.Instance.Create(AreaInfos.HExit, position);
+
+            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Horizontal)
+            {
+                // Rotate the Exit correct, if it was created.
+                var exitWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock
+                    .GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Exit);
+                exitWall.RotateTo(CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection);
+            }
+
+            return instance;
         }
     }
 }

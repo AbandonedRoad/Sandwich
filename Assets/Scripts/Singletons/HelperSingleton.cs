@@ -322,6 +322,10 @@ namespace Singletons
                 Debug.LogError("Object to check is null!");
             }
 
+            // Rotate everything to the same rotation before checking, otherwise sizes will eb diffent
+            Quaternion oldRotation = objectToCheck.transform.rotation;
+            objectToCheck.transform.rotation = Quaternion.Euler(Vector3.zero);
+
             Renderer renderer = objectToCheck.tag == "RenderObject"
                 ? objectToCheck.GetComponent<Renderer>()
                 : objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
@@ -330,9 +334,14 @@ namespace Singletons
                 Debug.LogError("No RenderObject found for: " + objectToCheck.name);
             }
 
-            return renderer != null
+            var result = renderer != null
                 ? renderer.bounds.size
                 : Vector3.one;
+
+            // Rotate back;
+            objectToCheck.transform.rotation = oldRotation;
+
+            return result;
         }
 
         /// <summary>
@@ -348,7 +357,6 @@ namespace Singletons
                 || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left)
             {
                 var exitWallPrevExit = allWallsWithExitPrevious.OrderBy(wall => wall.transform.position.x).LastOrDefault();
-                // var exitWallActExit = allWallsWithExitActual.OrderBy(wall => wall.transform.position.x).LastOrDefault();
                 var exitWallActEntry = allWallsWithExitActual.OrderBy(wall => wall.transform.position.x).FirstOrDefault();
                 if (exitWallPrevExit != null && exitWallActEntry != null)
                 {
@@ -364,7 +372,7 @@ namespace Singletons
                     else
                     {
                         // The exit is not on the oder side of the block, but on a side- adapt X Position for actual created item
-                        float newZ = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - Math.Abs(exitWallPrevExit.transform.localPosition.z);
+                        float newZ = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - Math.Abs(exitWallActEntry.transform.localPosition.z);
                         CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, actPos.y, newZ);
                     }
                 }
@@ -373,17 +381,25 @@ namespace Singletons
                 || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards)
             {
                 var exitWallPrevExit = allWallsWithExitPrevious.OrderBy(wall => wall.transform.position.z).LastOrDefault();
-                // var exitWallActExit = allWallsWithExitActual.OrderBy(wall => wall.transform.position.z).LastOrDefault();
                 var exitWallActEntry = allWallsWithExitActual.OrderBy(wall => wall.transform.position.z).FirstOrDefault();
-                if (exitWallPrevExit != null && exitWallActEntry != null && IsOppositeWall(exitWallPrevExit, exitWallActEntry))
+                if (exitWallPrevExit != null && exitWallActEntry != null)
                 {
                     // Adapt Z Position for actual created item
                     var actPos = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position;
-
-                    // Calculate for the übergang between the old and actual block
-                    var difference = Math.Abs(exitWallActEntry.transform.localPosition.z) + Math.Abs(exitWallPrevExit.transform.localPosition.z);
-                    float newX = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x - difference;
-                    CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, actPos.y, actPos.z);
+                    if (IsOppositeWall(exitWallPrevExit, exitWallActEntry))
+                    {
+                        // The exit is on the oder side of the block - adapt X Position for actual created item
+                        // Calculate for the übergang between the old and actual block
+                        var difference = Math.Abs(exitWallActEntry.transform.localPosition.z) + Math.Abs(exitWallPrevExit.transform.localPosition.z);
+                        float newX = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x + difference;
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, actPos.y, actPos.z);
+                    }
+                    else
+                    {
+                        // The exit is not on the oder side of the block, but on a side- adapt Z Position for actual created item
+                        float newX = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x - Math.Abs(exitWallActEntry.transform.localPosition.x);
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, actPos.y, actPos.z);
+                    }
                 }
             }
         }

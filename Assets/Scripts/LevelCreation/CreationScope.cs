@@ -8,6 +8,7 @@ using System.Linq;
 using Assets.Scripts.Enums;
 using Random = UnityEngine.Random;
 using Singletons;
+using System.Collections.Generic;
 
 namespace LevelCreation
 {
@@ -157,10 +158,17 @@ namespace LevelCreation
         public bool IsLastArea { get; set; }
 
         /// <summary>
+        /// The Area, which is actually created.
+        /// </summary>
+        public List<GameObject> ActualArea {get; set;}
+
+        /// <summary>
         /// Creates new instance
         /// </summary>
         public CreationScope()
-        {}
+        {
+            ActualArea = new List<GameObject>();
+        }
 
         /// <summary>
         /// Returns the correct rotation for the given horizonzal rotations.
@@ -231,10 +239,10 @@ namespace LevelCreation
             switch (this.ActualHorizontalDirection)
             {
                 case HorzDirection.Backwards:
-                    result = new Vector3(previousPos.x, previousPos.y, previousPos.z - ((previousSize.z / 2) + (actualSize.z / 2)));
+                    result = new Vector3(previousPos.x, previousPos.y, previousPos.z - ((previousSize.x / 2) + (actualSize.x / 2)));
                     break;
                 case HorzDirection.Forward:
-                    result = new Vector3(previousPos.x, previousPos.y, previousPos.z + (previousSize.z / 2) + (actualSize.z / 2));
+                    result = new Vector3(previousPos.x, previousPos.y, previousPos.z + (previousSize.x / 2) + (actualSize.x / 2));
                     break;
                 case HorzDirection.Left:
                     result = new Vector3(previousPos.x + (previousSize.x / 2) + (actualSize.x/ 2), previousPos.y, previousPos.z);
@@ -372,11 +380,18 @@ namespace LevelCreation
         private GameObject CreateExit(Vector3 position)
         {
             // Last area - return the exit.
-            GameObject instance = CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Vertical
+
+            // If the actual area was already constructed, check the actual Level orienation
+            // If the actual area was not constructed, we need the exit fro the previous Orientation
+            LevelOrientation orientationToCheck = CalculationSingleton.Instance.ActualCreationScope.ActualArea.Any()
+                ? CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation
+                : CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation;
+
+            GameObject instance = orientationToCheck == LevelOrientation.Vertical
                 ? PrefabSingleton.Instance.Create(AreaInfos.VExit, position)
                 : PrefabSingleton.Instance.Create(AreaInfos.HExit, position);
 
-            if (CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation == LevelOrientation.Horizontal)
+            if (orientationToCheck == LevelOrientation.Horizontal)
             {
                 // Rotate the Exit correct, if it was created.
                 var exitWall = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock

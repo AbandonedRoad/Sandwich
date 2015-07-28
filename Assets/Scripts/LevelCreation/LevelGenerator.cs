@@ -91,8 +91,8 @@ namespace LevelCreation
 			for (int i = start; i < areaCount; i++)
 			{
                 // Gets the next position for the next horizontal block
-                var blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.GetHBlock();
-                var pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
+                GameObject blockToBeCreated = null;
+                Vector3 pos;
 				GameObject levelBlock = null;
 				if (i >= (areaCount - 3))
 				{
@@ -103,6 +103,9 @@ namespace LevelCreation
 					// Create a Transition block, if random fits. If in the last loop no transition was created yet, create one in every case.
                     if (range == 1)
                     {
+                        blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HTransition;
+                        pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
+
                         levelBlock = CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal
                             ? CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos)
                             : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos); 
@@ -110,6 +113,9 @@ namespace LevelCreation
                     }
                     else
                     {
+                        blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.GetHBlock();
+                        pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
+
                         pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
                         levelBlock = PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                         CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
@@ -119,6 +125,7 @@ namespace LevelCreation
 				else
 				{
 					// Create a floor when doing the first one.
+                    blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.GetHBlock();
                     pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
 					levelBlock = i == 0 
 						? transitonBlock != null

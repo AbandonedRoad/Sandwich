@@ -85,7 +85,8 @@ namespace Menu
             HelperSingleton.Instance.DestroyLevel();
 
 			int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
-            seed = 110;
+            // seed = 85 --> Bug, Collission detection needed!
+            // seed = 109;
             Debug.Log("Last seed: " + seed.ToString());
 			PrefabSingleton.Instance.LevelStartup.Seed = seed;
 			PrefabSingleton.Instance.LevelStartup.StartLevel();

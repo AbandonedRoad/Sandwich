@@ -105,11 +105,12 @@ namespace LevelCreation
                     {
                         levelBlock = CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal
                             ? CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos)
-                            : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);                       
+                            : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos); 
                         result = levelBlock;
                     }
                     else
                     {
+                        pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
                         levelBlock = PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                         CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                     }
@@ -118,12 +119,14 @@ namespace LevelCreation
 				else
 				{
 					// Create a floor when doing the first one.
+                    pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
 					levelBlock = i == 0 
 						? transitonBlock != null
                             ? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
                             : PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
                             : PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
+                    HelperSingleton.Instance.AdaptPositonForExit();
 				}
 				
 				levelBlock.transform.parent = PrefabSingleton.Instance.LevelParent;
@@ -154,7 +157,7 @@ namespace LevelCreation
                 Vector3 position = new Vector3(levelBlock.transform.position.x, levelBlock.transform.position.y + .5f, levelBlock.transform.position.z);
                 
                 // Add an enemy if needed
-                PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Roller, position);
+                // PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Roller, position);
             }
         }
 
@@ -197,7 +200,7 @@ namespace LevelCreation
                         levelBlock = CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation == LevelOrientation.Horizontal
                             ? CalculationSingleton.Instance.ActualCreationScope.GetHorizontalTranstion(pos)
                             : CalculationSingleton.Instance.ActualCreationScope.GetVerticalTransition(pos);
-
+                        levelBlock.transform.position = pos;
                         transitionInfo = levelBlock;
                     }
                     else

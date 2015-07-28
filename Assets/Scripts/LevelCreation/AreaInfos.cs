@@ -35,10 +35,12 @@ namespace LevelCreation
         /// <returns></returns>
         public GameObject GetHBlock()
         {
-            int max = 20 + HBlock.Count;
+            int borderForDefaultBlock = 19;
+
+            int max = borderForDefaultBlock + HBlock.Count;
             int range = Random.Range(0, max);
 
-            if (range < 20)
+            if (range <= borderForDefaultBlock)
             {
                 // Return default block
                 return HBlock[0];
@@ -46,7 +48,7 @@ namespace LevelCreation
             else
             {
                 // Return a special block
-                return HBlock[range - 19];
+                return HBlock[range - borderForDefaultBlock];
             }
         }
 	}

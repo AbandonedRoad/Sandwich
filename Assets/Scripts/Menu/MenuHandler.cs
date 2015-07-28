@@ -51,7 +51,7 @@ namespace Menu
 			_optionsButton.onClick.AddListener(() => ShowOptions());
 			_exitButton.onClick.AddListener(() => ExitGame());
 		}
-		
+	
 		/// <summary>
 		/// Switchs the scene end panel.
 		/// </summary>
@@ -84,8 +84,8 @@ namespace Menu
             // Destroy, if needed
             HelperSingleton.Instance.DestroyLevel();
 
-			// int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
-            int seed = 53;
+			int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
+            seed = 110;
             Debug.Log("Last seed: " + seed.ToString());
 			PrefabSingleton.Instance.LevelStartup.Seed = seed;
 			PrefabSingleton.Instance.LevelStartup.StartLevel();

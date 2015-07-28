@@ -295,8 +295,8 @@ namespace LevelCreation
                 {
                     // They do not differ - just create a block.
                     instance = PrefabSingleton.Instance.Create(AreaInfos.GetHBlock(), position);
-                    HelperSingleton.Instance.AdaptPositonForExit();
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
+                    HelperSingleton.Instance.AdaptPositonForExit();
                 }              
             }
             else

@@ -4,6 +4,7 @@ using UnityEngine;
 using Enums;
 using Random = UnityEngine.Random;
 using Blocks;
+using Assets.Scripts.Player;
 
 namespace Singleton
 {
@@ -16,8 +17,9 @@ namespace Singleton
 		public KeyCode Left {get; private set;}
 		public KeyCode Right {get; private set;}
         public GameObject Player { get; private set; }
+        public PlayerTorch PlayersTorch { get; private set; }
 
-		private static PlayerSingleton _instance;
+        private static PlayerSingleton _instance;
 
 		/// <summary>
 		/// Gets or sets the total health.
@@ -36,6 +38,11 @@ namespace Singleton
 		/// </summary>
 		/// <value>The coin amount.</value>
 		public int CoinAmount {get; set;}
+
+        /// <summary>
+        /// This is the time, the level was opened. At the end, the level duration may be shown.
+        /// </summary>
+        public DateTime LevelStartDate { get; set;}
 
 		/// <summary>
 		/// Gets or sets the difficulty of the game
@@ -68,14 +75,15 @@ namespace Singleton
 			TotalHealth = 5;
 			PlayerHealth = 5;
 
-			Jump = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("JUMP"));
-			Crouch = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("CROUCH"));
-			Forward = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("FORWARD"));
-			Backwards = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("BACKWARD"));
-			Left = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("LEFT"));
-			Right = (KeyCode)System.Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("RIGHT"));
+			Jump = (KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("JUMP"));
+			Crouch = (KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("CROUCH"));
+			Forward = (KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("FORWARD"));
+			Backwards = (KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("BACKWARD"));
+			Left = (KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("LEFT"));
+			Right = (KeyCode)Enum.Parse(typeof(KeyCode), PlayerPrefs.GetString("RIGHT"));
 
             Player = GameObject.Find("Player");
-		}	
+            PlayersTorch = GameObject.Find("PlayersTorch").GetComponent<PlayerTorch>();
+        }	
 	}
 }

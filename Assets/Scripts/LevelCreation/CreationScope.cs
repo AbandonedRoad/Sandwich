@@ -9,6 +9,7 @@ using Assets.Scripts.Enums;
 using Random = UnityEngine.Random;
 using Singletons;
 using System.Collections.Generic;
+using Assets.Scripts.Campaign;
 
 namespace LevelCreation
 {
@@ -161,6 +162,12 @@ namespace LevelCreation
         /// The Area, which is actually created.
         /// </summary>
         public List<GameObject> ActualArea {get; set;}
+
+        /// <summary>
+        /// Determines the actual Campaign we are playing. 
+        /// It is used to check which type of blocks to chose.
+        /// </summary>
+        public Campaigns ActualCampaign {get; set;}
 
         /// <summary>
         /// Creates new instance

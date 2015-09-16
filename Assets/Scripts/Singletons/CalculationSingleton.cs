@@ -93,7 +93,11 @@ namespace Singleton
                 instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.VFloorDoor);
                 
                 // Rotate last vertical transition into correct rotation.
-                var doorWall = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
+                var doorWall = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().FirstOrDefault(dsc => dsc.Descriptor == WallDescription.Door);
+                if (doorWall == null)
+                {
+                    doorWall = null;
+                }
                 doorWall.RotateTo(HorzDirection.Backwards);
 
                 // Rotate to actual be created block into correct rotation.
@@ -168,7 +172,11 @@ namespace Singleton
                 instance = PrefabSingleton.Instance.Create(ActualCreationScope.AreaInfos.HTransition);
 
                 // Rotate last vertical transition into correct rotation.
-                var doorWall = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().First(dsc => dsc.Descriptor == WallDescription.Door);
+                var doorWall = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentsInChildren<WallDescriptor>().FirstOrDefault(dsc => dsc.Descriptor == WallDescription.Door);
+                if (doorWall == null)
+                {
+                    doorWall = null;
+                }
                 doorWall.RotateTo(CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection);
 
                 // Rotate to actual be created block into correct rotation.
@@ -211,8 +219,8 @@ namespace Singleton
 		/// <param name="orientation">Orientation.</param>
         public GameObject PlaceOnTopOfObject(GameObject onTopOf, GameObject objectToPlace, HorzOrientation orientation)
 		{
-            var onTopOfSize = HelperSingleton.Instance.GetSize(onTopOf);
-            var objectToPlaceSize = HelperSingleton.Instance.GetSize(objectToPlace);
+            var onTopOfSize = HelperSingleton.Instance.GetSize(onTopOf, false);
+            var objectToPlaceSize = HelperSingleton.Instance.GetSize(objectToPlace, false);
 			var center = HelperSingleton.Instance.GetCenterOfGameObject(onTopOf);			
 			Vector3 pos;
 

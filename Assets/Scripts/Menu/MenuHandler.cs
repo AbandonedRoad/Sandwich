@@ -17,6 +17,8 @@ using Singleton;
 using LevelCreation;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using Assets.Scripts.Campaign;
+using Random = UnityEngine.Random;
 
 namespace Menu
 {
@@ -71,10 +73,12 @@ namespace Menu
 		private void StartCampaign()
 		{			
 			SwitchStartPanel();
+
+            PrefabSingleton.Instance.CampaignHandler.SwitchCampaignPanel();
 		}
 
 		/// <summary>
-		/// Adapts the worker speed.
+		/// Starts a skirmish game
 		/// </summary>
 		/// <param name="newValue">New value.</param>
 		private void StartSkirmish()
@@ -84,11 +88,11 @@ namespace Menu
             // Destroy, if needed
             HelperSingleton.Instance.DestroyLevel();
 
-			int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
-            // seed = 85 --> Bug, Collission detection needed!
-            // seed = 109;
-            Debug.Log("Last seed: " + seed.ToString());
-			PrefabSingleton.Instance.LevelStartup.Seed = seed;
+            int textureType = Random.Range(0, 2);
+
+            CalculationSingleton.Instance.ActualCreationScope.ActualCampaign = (Campaigns)textureType;
+
+			PrefabSingleton.Instance.LevelStartup.Seed = HelperSingleton.Instance.CreateSeed();
 			PrefabSingleton.Instance.LevelStartup.StartLevel();
 		}
 

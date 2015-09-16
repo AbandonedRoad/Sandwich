@@ -15,6 +15,7 @@ using UnityEngine.UI;
 using System.Reflection.Emit;
 using Singleton;
 using LevelCreation;
+using Player;
 
 namespace Menu
 {
@@ -28,19 +29,24 @@ namespace Menu
 		private GameObject _sceneStatisticsPanel;
 		private Button _nextLevelButton;
 		private Button _exitButton;
-		
-		/// <summary>
-		/// Start this instance.
-		/// </summary>
-		void Start()
+        private Text _coinText;
+        private Text _durationText;
+
+        /// <summary>
+        /// Start this instance.
+        /// </summary>
+        void Start()
 		{
 			_sceneStatisticsPanel = GameObject.Find("SceneStatisticsPanel");
 			
 			_nextLevelButton = _sceneStatisticsPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "NextButton");
 			_exitButton = _sceneStatisticsPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "ExitButton");
-			
-			// This is a setup for a button that grabs the field value when pressed
-			_nextLevelButton.onClick.AddListener(() => NextLevel());
+
+            _coinText = _sceneStatisticsPanel.GetComponentsInChildren<Text>().First(btn => btn.name == "CoinsText");
+            _durationText = _sceneStatisticsPanel.GetComponentsInChildren<Text>().First(btn => btn.name == "DurationText");
+
+            // This is a setup for a button that grabs the field value when pressed
+            _nextLevelButton.onClick.AddListener(() => NextLevel());
 			_exitButton.onClick.AddListener(() => ExitGame());
 			
 			SwitchSceneEndPanel ();
@@ -55,7 +61,10 @@ namespace Menu
 			if (_sceneStatisticsPanel.activeSelf)
 			{
 				_sceneStatisticsPanel.transform.SetAsLastSibling();
-			}
+
+                _coinText.text = PlayerSingleton.Instance.CoinAmount.ToString();
+                _durationText.text = (DateTime.Now - PlayerSingleton.Instance.LevelStartDate).TotalSeconds.ToString() + "s";
+            }
 		}
 		
 		/// <summary>
@@ -66,10 +75,10 @@ namespace Menu
 		{			
 			HelperSingleton.Instance.DestroyLevel();
 
-			var levelGenerator = new LevelGenerator(60);
-			levelGenerator.CreateNewLevel();
-			
-			while(PrefabSingleton.Instance.ScreenFader.IsBlack)
+            PrefabSingleton.Instance.LevelStartup.Seed = HelperSingleton.Instance.CreateSeed();
+            PrefabSingleton.Instance.LevelStartup.StartLevel();
+
+            while (PrefabSingleton.Instance.ScreenFader.IsBlack)
 			{
 				PrefabSingleton.Instance.ScreenFader.RestartScene();
 			}

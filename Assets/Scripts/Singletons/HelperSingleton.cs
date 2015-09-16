@@ -84,13 +84,27 @@ namespace Singletons
 
 			return parent;
 		}
-	
-		/// <summary>
-		/// Gets the GO which is the nearest to the player.
-		/// </summary>
-		/// <param name="">.</param>
-		/// <param name="myPosition">My position.</param>
-		public GameObject GetNearestGameObject(IEnumerable<GameObject> objects, Vector3 myPosition)
+
+        /// <summary>
+        /// Creates a new seed for the next level
+        /// </summary>
+        /// <returns></returns>
+        public int CreateSeed()
+        {
+            int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
+            Debug.Log("Last seed: " + seed.ToString());
+
+            // TODO: Collission detection needed is needed for level block. Seed == 85
+
+            return seed;
+        }
+
+        /// <summary>
+        /// Gets the GO which is the nearest to the player.
+        /// </summary>
+        /// <param name="">.</param>
+        /// <param name="myPosition">My position.</param>
+        public GameObject GetNearestGameObject(IEnumerable<GameObject> objects, Vector3 myPosition)
 		{
 			objects = objects.Distinct();
 			Dictionary<GameObject, float> distanceToObject = new Dictionary<GameObject, float>();
@@ -333,8 +347,12 @@ namespace Singletons
         /// </summary>
         /// <returns>The size.</returns>
         /// <param name="objectToCheck">Object to check.</param>
-        public Vector3 GetSize(GameObject objectToCheck)
+        public Vector3 GetSize(GameObject objectToCheck, bool getForMaster = true)
         {
+            string tag = getForMaster
+                ? "MasterRenderObject"
+                : "RenderObject";
+
             if (objectToCheck == null)
             {
                 Debug.LogError("Object to check is null!");
@@ -344,12 +362,15 @@ namespace Singletons
             Quaternion oldRotation = objectToCheck.transform.rotation;
             objectToCheck.transform.rotation = Quaternion.Euler(Vector3.zero);
 
-            Renderer renderer = objectToCheck.tag == "RenderObject"
+            // TODO: This does not work in all cases, as a level block may contain severla other pieces which do also contain a RenderObject.
+            // When trying to allign to level blocks they may overlap. Seed == 109.
+
+            Renderer renderer = objectToCheck.tag == tag
                 ? objectToCheck.GetComponent<Renderer>()
-                : objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == "RenderObject");
+                : objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == tag);
             if (renderer == null)
             {
-                Debug.LogError("No RenderObject found for: " + objectToCheck.name);
+                Debug.LogError(String.Concat("No ", tag , " found for: ", objectToCheck.name));
             }
 
             var result = renderer != null

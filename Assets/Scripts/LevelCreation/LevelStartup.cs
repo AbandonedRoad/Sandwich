@@ -30,6 +30,9 @@ namespace LevelCreation
 				_levelGenerator = new LevelGenerator(Seed);
 				_levelGenerator.CreateNewLevel();
 
+                PlayerSingleton.Instance.CoinAmount = 0;
+                PlayerSingleton.Instance.LevelStartDate = DateTime.Now;
+
 				PlayerSingleton.Instance.Player.GetComponent<FallDamage>().ApplyNormal();
                 PlayerSingleton.Instance.Player.GetComponent<PlayerUpdates>().ResetHealth();
                 PlayerSingleton.Instance.Player.transform.position = new Vector3(0, 1.813f, 0);

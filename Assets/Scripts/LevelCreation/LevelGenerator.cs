@@ -30,7 +30,7 @@ namespace LevelCreation
 		public void CreateNewLevel()
 		{
 			int levelAreaAmount = Random.Range(3, 10);
-            CalculationSingleton.Instance.ActualCreationScope.AreaInfos = PrefabSingleton.Instance.GetNewAreaInfo(null);             
+            CalculationSingleton.Instance.ActualCreationScope.AreaInfos = PrefabSingleton.Instance.GetNewAreaInfo();
             // Prepare Actual Scope - set the next Orienation twice, so Actual and gets filled - 
             CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 2);
             CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 2);
@@ -41,7 +41,7 @@ namespace LevelCreation
 
                 if (CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation == LevelOrientation.Vertical)
 				{
-                    int areaCount = Random.Range(3, 4);
+                    int areaCount = Random.Range(3, 6);
                     if (CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection == VertDirection.NotSet)
                     {
                         // Preset, if not done yet - If the level is just starting, we need to go up here!
@@ -128,10 +128,8 @@ namespace LevelCreation
                     blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.GetHBlock();
                     pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
 					levelBlock = i == 0 
-						? transitonBlock != null
-                            ? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
-                            : PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
-                            : PrefabSingleton.Instance.Create(blockToBeCreated, pos);
+						? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
+                        : PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                     HelperSingleton.Instance.AdaptPositonForExit();
 				}
@@ -193,7 +191,6 @@ namespace LevelCreation
 				Vector3 pos = new Vector3(transitonBlock == null ? 0 : transitonBlock.transform.position.x,
 				                          transitonBlock == null ? (i * blockSize.y) * dirMulti : transitonBlock.transform.position.y + (i * blockSize.y * dirMulti),
 				                          transitonBlock == null ? 0 : transitonBlock.transform.position.z);
-
 				GameObject levelBlock = null;
 				if (i >= (areaCount - 2))
 				{
@@ -213,6 +210,7 @@ namespace LevelCreation
                     else
                     {
                         levelBlock = PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.VBlock, pos);
+                        levelBlock.transform.rotation = Quaternion.Euler(new Vector3(0, transitonBlock.transform.rotation.eulerAngles.y + 90, 0));
                     }
 				}
 				else
@@ -267,6 +265,12 @@ namespace LevelCreation
                         : VertOrientation.Top;
                     for (int stand = 0; stand < wallCount; stand++)
                     {
+                        if (!levelBlock.transform.GetComponentsInChildren<BlockDescriptor>().First().NeedsStairs)
+                        {
+                            // If no stairs are needed, do not create one.
+                            continue;
+                        }
+
                         GameObject standBlock = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.RectStandBlock);
                         int wall;
                         while (true)
@@ -362,7 +366,11 @@ namespace LevelCreation
                         throw new ArgumentException("Type not supported");
                 }
 
-                CreateLights(actualLevelBlock, -1);
+                if (Random.Range(0, 12) == 0)
+                {
+                    // Create a light, if random fights
+                    CreateLights(actualLevelBlock, -1);
+                }
 			}
 		}
 
@@ -378,16 +386,17 @@ namespace LevelCreation
                 CalculationSingleton.Instance.OrientationCalculation.Init(levelBlock.GetComponentsInChildren<WallDescriptor>().First(wl => wl.WallNumber == wall), light);
                 CalculationSingleton.Instance.OrientationCalculation.SetOrienation(HorzOrientation.Center, VertOrientation.Center);
                 CalculationSingleton.Instance.GetPositionForObject();
-			}
+                light.SetActive(false);
+                light.SetActive(true);
+            }
 			else
 			{
-                var walls = HelperSingleton.Instance.GetAllRealWalls(levelBlock);
-                foreach (var wallObject in walls)
-                {
-                    var light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
-                    CalculationSingleton.Instance.OrientationCalculation.Init(wallObject, light);
-                    CalculationSingleton.Instance.GetPositionForObject();
-                }
+                var wallObject = HelperSingleton.Instance.GetAllRealWalls(levelBlock).First();
+                var light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
+                CalculationSingleton.Instance.OrientationCalculation.Init(wallObject, light);
+                CalculationSingleton.Instance.GetPositionForObject();
+                light.SetActive(false);
+                light.SetActive(true);
 			}
 		}
 

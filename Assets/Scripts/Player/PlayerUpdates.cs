@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using Singletons;
+using Assets.Scripts.Blocks;
 
 namespace Player
 {
@@ -69,19 +70,34 @@ namespace Player
 				PrefabSingleton.Instance.ScreenFader.PlayerDied();
 			}
 
+            // Update Label for Coins.
 			_coinsText.text = PlayerSingleton.Instance.CoinAmount.ToString();
 
+            // Check User input.
 			if (Input.GetKeyDown(KeyCode.Return))
 			{
 				// Enter was pressed
 				RaycastHit hitInfo;
 				if(Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out hitInfo))
 				{
-					if (HelperSingleton.Instance.GetTopMostGO(hitInfo.transform.gameObject, true).tag == "Exit")
-					{
-						_playerWon = true;
-					}
-				}
+                    if (HelperSingleton.Instance.GetTopMostGO(hitInfo.transform.gameObject, true).tag == "Exit")
+                    {
+                        _playerWon = true;
+                    }
+                    else if (hitInfo.transform.gameObject.tag == "Torch")
+                    {
+                        var wallObject = hitInfo.transform.parent.gameObject.GetComponent<WallDescriptor>();
+
+                        if (wallObject != null)
+                        {
+                            var light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.TorchEmpty, hitInfo.transform.position);
+                            CalculationSingleton.Instance.OrientationCalculation.Init(wallObject, light);
+                            CalculationSingleton.Instance.GetPositionForObject();
+                            Destroy(hitInfo.transform.gameObject);
+                            PlayerSingleton.Instance.PlayersTorch.Enable(120);
+                        }
+                    }
+                }
 			}
 
 			if (_playerWon && !PrefabSingleton.Instance.ScreenFader.IsBlack)

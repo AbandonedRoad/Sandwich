@@ -55,5 +55,5 @@ namespace Player
 			_fallDistance = 0;
 			_lastPositionY = 0;
 		}
-	}
+    }
 }

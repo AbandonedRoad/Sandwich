@@ -6,6 +6,7 @@ using LevelCreation;
 using Enums;
 using Misc;
 using Menu;
+using Assets.Scripts.Campaign;
 
 namespace Singleton
 {
@@ -13,12 +14,22 @@ namespace Singleton
 	{
 		private static PrefabSingleton _instance;
 
+        // -- Vert Blocks
+        // Red Bricks
 		public GameObject VertRedBricks {get; private set;}
 		public GameObject VertRedBricksDoor {get; private set;}
 		public GameObject VertRedBricksDoorFloor {get; private set;}
 		public GameObject VertRedBricksFloor {get; private set;}
 		public GameObject VertRedBricksExit {get; private set;}
 
+        public GameObject VertSewer { get; private set; }
+        public GameObject VertSewerDoor { get; private set; }
+        public GameObject VertSewerDoorFloor { get; private set; }
+        public GameObject VertSewerFloor { get; private set; }
+        public GameObject VertSewerExit { get; private set; }
+
+        // -- Horz Blocks
+        // Red Bricks
 		public GameObject HorzRedBricks {get; private set;}
         public GameObject HorzRedBricksSpec1 { get; private set; }
 		public GameObject HorzRedBricksDoorPrefab {get; private set;}
@@ -26,12 +37,21 @@ namespace Singleton
 		public GameObject HorzRedBricksEnd {get; private set;}
         public GameObject HorzRedBricksCornerPrefab { get; private set; }
 
+        public GameObject HorzSewer { get; private set; }
+        public GameObject HorzSewerSpec1 { get; private set; }
+        public GameObject HorzSewerDoorPrefab { get; private set; }
+        public GameObject HorzSewerExitPrefab { get; private set; }
+        public GameObject HorzSewerEnd { get; private set; }
+        public GameObject HorzSewerCornerPrefab { get; private set; }
+
+        // -- Enemies
         public GameObject Roller { get; private set; }
 
 		public GameObject MetalPipeRoof {get; private set;}
 		public GameObject RectStandBlock {get; private set;}
 		public GameObject Torch {get; private set;}
-		public GameObject Coin {get; private set;}
+        public GameObject TorchEmpty { get; private set; }
+        public GameObject Coin {get; private set;}
 		public GameObject HeartFull {get; private set;}
 		public GameObject HeartEmpty {get; private set;}
 		public Dictionary<int, AudioClip> Screams;
@@ -47,6 +67,7 @@ namespace Singleton
 		public SceneStatisticsHandler SceneStatistics {get; private set;}
 		public InputHandler InputHandler {get; private set;}
 		public MenuHandler MenuHandler {get; private set;}
+        public CampaignHandler CampaignHandler { get; private set; }
 		public LevelStartup LevelStartup {get; private set;}
 
 		/// <summary>
@@ -92,12 +113,28 @@ namespace Singleton
 			VertRedBricksExit = Resources.Load("Prefabs/LevelBlocks/VertRedBricksExitPrefab") as GameObject;
 
 			// Level Parts - Horizontal
+            // Red Bricks
 			HorzRedBricks = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksPrefab") as GameObject;
             HorzRedBricksSpec1 = Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom1Prefab") as GameObject;
 			HorzRedBricksEnd = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksEndPrefab") as GameObject;
 			HorzRedBricksDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksDoorPrefab") as GameObject;
 			HorzRedBricksExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksExitPrefab") as GameObject;
             HorzRedBricksCornerPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksCornerPrefab") as GameObject;
+
+            // Sewer Parts
+            HorzSewer = Resources.Load("Prefabs/LevelBlocks/HorzSewerPrefab") as GameObject;
+            HorzSewerSpec1 = Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom1Prefab") as GameObject;
+            HorzSewerEnd = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksEndPrefab") as GameObject;
+            HorzSewerDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzSewerDoorPrefab") as GameObject;
+            HorzSewerExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzSewerExitPrefab") as GameObject;
+            HorzSewerCornerPrefab = Resources.Load("Prefabs/LevelBlocks/HorzSewerCornerPrefab") as GameObject;
+
+            // Sewer Parts
+            VertSewer = Resources.Load("Prefabs/LevelBlocks/VertSewerPrefab") as GameObject;
+            VertSewerDoor = Resources.Load("Prefabs/LevelBlocks/VertSewerDoorPrefab") as GameObject;
+            VertSewerDoorFloor = Resources.Load("Prefabs/LevelBlocks/VertSewerDoorFloorPrefab") as GameObject;
+            VertSewerFloor = Resources.Load("Prefabs/LevelBlocks/VertRedBricksFloorPrefab") as GameObject;
+            VertSewerExit = Resources.Load("Prefabs/LevelBlocks/VertSewerExitPrefab") as GameObject;
 
             // Enemies
             Roller = Resources.Load("Prefabs/Enemies/RollerPrefab") as GameObject;
@@ -113,9 +150,10 @@ namespace Singleton
 			HeartEmpty = Resources.Load("Prefabs/GUI/HeartEmptyPrefab") as GameObject;
 
 			Torch = Resources.Load("Prefabs/Lights/TorchPrefab") as GameObject;
+            TorchEmpty = Resources.Load("Prefabs/Lights/TorchEmptyPrefab") as GameObject;
 
-			// Parents
-			PickupParent = GameObject.Find ("_Pickups").transform;
+            // Parents
+            PickupParent = GameObject.Find ("_Pickups").transform;
 			LevelParent = GameObject.Find ("_Levels").transform;
 			StandBlockParent = GameObject.Find ("_Stands").transform;
 			CeillingParent = GameObject.Find ("_Ceilling").transform;
@@ -126,7 +164,8 @@ namespace Singleton
 			DeadHandler = handlingPrefab.GetComponent<YouAreDeadHandler>(); 
 			SceneStatistics = handlingPrefab.GetComponent<SceneStatisticsHandler>(); 
 			LevelStartup = handlingPrefab.GetComponent<LevelStartup>();
-			MenuHandler = handlingPrefab.GetComponent<MenuHandler>(); 
+			MenuHandler = handlingPrefab.GetComponent<MenuHandler>();
+            CampaignHandler = handlingPrefab.GetComponent<CampaignHandler>(); 
 			InputHandler = handlingPrefab.GetComponent<InputHandler>();
 
 			var guiPrefab = GameObject.Find ("GUIPrefab");
@@ -136,29 +175,47 @@ namespace Singleton
 		/// <summary>
 		/// Gets the new area info, this is the stuff we need to construct an area.
 		/// </summary>
-		/// <returns>The new area info.</returns>
-		/// <param name="orientation">Orientation inwhich the area is planned. Horizontal or vertical</param>
-		/// <param name="lastAreaInfos">The Last area infos - used to match textures in transition</param>
-		public AreaInfos GetNewAreaInfo(AreaInfos lastAreaInfos)
+        public AreaInfos GetNewAreaInfo()
 		{
 			int value = Random.Range(0, 1);
 			if (value == 0)
 			{
-				return new AreaInfos()
-				{
-					VFloorDoor = VertRedBricksDoorFloor,
-					VFloor = VertRedBricksFloor,
-					VBlock = VertRedBricks,
-					VTransition = VertRedBricksDoor,
-					VRoof = MetalPipeRoof,
-					VExit = VertRedBricksExit,
+                if (CalculationSingleton.Instance.ActualCreationScope.ActualCampaign == Campaigns.TheCellar)
+                {
+                    return new AreaInfos()
+                    {
+                        VFloorDoor = VertRedBricksDoorFloor,
+                        VFloor = VertRedBricksFloor,
+                        VBlock = VertRedBricks,
+                        VTransition = VertRedBricksDoor,
+                        VRoof = MetalPipeRoof,
+                        VExit = VertRedBricksExit,
 
-					HFloor = HorzRedBricks,
-					HBlock = new List<GameObject> { HorzRedBricks, HorzRedBricksSpec1 },
-					HTransition = HorzRedBricksDoorPrefab,
-					HExit = HorzRedBricksExitPrefab,
-                    HCorner = HorzRedBricksCornerPrefab
-				};
+                        HFloor = HorzRedBricks,
+                        HBlock = new List<GameObject> { HorzRedBricks, HorzRedBricksSpec1 },
+                        HTransition = HorzRedBricksDoorPrefab,
+                        HExit = HorzRedBricksExitPrefab,
+                        HCorner = HorzRedBricksCornerPrefab
+                    };
+                }
+                else if (CalculationSingleton.Instance.ActualCreationScope.ActualCampaign == Campaigns.TheSewers)
+                {
+                    return new AreaInfos()
+                    {
+                        VFloorDoor = VertSewerDoorFloor,
+                        VFloor = VertSewerFloor,
+                        VBlock = VertSewer,
+                        VTransition = VertSewerDoor,
+                        VRoof = MetalPipeRoof,
+                        VExit = VertSewerExit,
+
+                        HFloor = HorzSewer,
+                        HBlock = new List<GameObject> { HorzSewer },
+                        HTransition = HorzSewerDoorPrefab,
+                        HExit = HorzSewerExitPrefab,
+                        HCorner = HorzSewerCornerPrefab
+                    };
+                }
 			}
 
 			return null;
@@ -176,7 +233,7 @@ namespace Singleton
 			result.transform.position = pos.HasValue ? pos.Value : result.transform.position;         
 			result.name = result.name.Substring(0, result.name.Length - 7);
 
-            if (toBeCreated.tag == "LevelBlock")
+            if (toBeCreated.tag == "LevelBlock" || toBeCreated.tag == "Exit")
             {
                 // Remeber, if this is a level block
                 CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock = result;

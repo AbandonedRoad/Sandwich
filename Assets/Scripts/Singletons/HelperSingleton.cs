@@ -19,7 +19,7 @@ using LevelCreation;
 using Enums;
 using Random = UnityEngine.Random;
 
-namespace Singletons
+namespace Singleton
 {
 	public class HelperSingleton
 	{

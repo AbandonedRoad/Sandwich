@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 using Enums;
 using Singleton;
 using Assets.Scripts.Blocks;
-using System;
 using System.Linq;
 using Assets.Scripts.Enums;
 using Random = UnityEngine.Random;
-using Singletons;
 using System.Collections.Generic;
 using Assets.Scripts.Campaign;
 
@@ -59,6 +56,8 @@ namespace LevelCreation
         /// <summary>
         /// Horizontal Orienation
         /// </summary>
+        public HorzDirection FirstHorizontalDirection
+        { get; private set; }
         public HorzDirection NextHorizontalDirection
         {
             get
@@ -79,6 +78,9 @@ namespace LevelCreation
             }
             private set
             {
+                FirstHorizontalDirection = FirstHorizontalDirection == HorzDirection.NotSet
+                    ? value
+                    : FirstHorizontalDirection;
                 PreviousHorizontalDirection = _actualHorzDirection;
                 _actualHorzDirection = value;
             }
@@ -161,7 +163,12 @@ namespace LevelCreation
         /// <summary>
         /// The Area, which is actually created.
         /// </summary>
-        public List<GameObject> ActualArea {get; set;}
+        public List<BlockInfo> ActualArea {get; set;}
+
+        /// <summary>
+        /// The Level - contains all blocks of the level.
+        /// </summary>
+        public List<BlockInfo> ActualLevel { get; set; }
 
         /// <summary>
         /// Determines the actual Campaign we are playing. 
@@ -174,7 +181,9 @@ namespace LevelCreation
         /// </summary>
         public CreationScope()
         {
-            ActualArea = new List<GameObject>();
+            FirstHorizontalDirection = HorzDirection.NotSet;
+            ActualArea = new List<BlockInfo>();
+            ActualLevel = new List<BlockInfo>();
         }
 
         /// <summary>

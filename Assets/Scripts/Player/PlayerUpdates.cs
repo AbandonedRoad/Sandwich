@@ -7,13 +7,11 @@
 //     der Code erneut generiert wird.
 // </auto-generated>
 //------------------------------------------------------------------------------
-using System;
 using UnityEngine;
 using Singleton;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
-using Singletons;
 using Assets.Scripts.Blocks;
 
 namespace Player

@@ -7,16 +7,10 @@
 //     der Code erneut generiert wird.
 // </auto-generated>
 //------------------------------------------------------------------------------
-using System;
 using System.Linq;
 using UnityEngine;
-using Singletons;
 using UnityEngine.UI;
-using System.Reflection.Emit;
 using Singleton;
-using LevelCreation;
-using UnityEngine.EventSystems;
-using System.Collections.Generic;
 using Assets.Scripts.Campaign;
 using Random = UnityEngine.Random;
 

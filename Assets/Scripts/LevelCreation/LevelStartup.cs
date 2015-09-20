@@ -12,6 +12,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Singleton;
 using Player;
+using System.Linq;
+using Enums;
 
 namespace LevelCreation
 {
@@ -35,8 +37,28 @@ namespace LevelCreation
 
 				PlayerSingleton.Instance.Player.GetComponent<FallDamage>().ApplyNormal();
                 PlayerSingleton.Instance.Player.GetComponent<PlayerUpdates>().ResetHealth();
-                PlayerSingleton.Instance.Player.transform.position = new Vector3(0, 1.813f, 0);
-			}
+
+                // Set Player to correct position.
+                var firstBlock = CalculationSingleton.Instance.ActualCreationScope.ActualLevel[0];
+                var secondBlock = CalculationSingleton.Instance.ActualCreationScope.ActualLevel[1];
+                PlayerSingleton.Instance.Player.transform.position = new Vector3(firstBlock.LevelBlock.transform.position.x, 1.813f, firstBlock.LevelBlock.transform.position.z);
+
+                if (CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Left
+                    || CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Right)
+                {
+                    PlayerSingleton.Instance.Player.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Left
+                        ? Quaternion.Euler(new Vector3(0, 90, 0))
+                        : Quaternion.Euler(new Vector3(0, 270, 0));
+                }
+                else if (CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Forward
+                    || CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Backwards)
+                {
+                    PlayerSingleton.Instance.Player.transform.rotation = CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Forward
+                        ? Quaternion.Euler(new Vector3(0, 0, 0))
+                        : Quaternion.Euler(new Vector3(0, 180, 0));
+                }
+                PlayerSingleton.Instance.FacingDirection = CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection;
+            }
 			else
 			{
 				// Debug.LogError("No Seed! Level will not be creatd!");

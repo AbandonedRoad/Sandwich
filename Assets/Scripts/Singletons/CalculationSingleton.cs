@@ -2,10 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using Enums;
-using Random = UnityEngine.Random;
-using Blocks;
 using LevelCreation;
-using Singletons;
 using System.Collections.Generic;
 using Assets.Scripts.Blocks;
 using Assets.Scripts.Enums;
@@ -135,15 +132,15 @@ namespace Singleton
 			instance.transform.position = new Vector3(xValue, lastTransition.transform.position.y, zValue);
 
             HelperSingleton.Instance.CreateDebugGOAtPosition(
-                  "Prv Level: " + CalculationSingleton.Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine
-                + "Act Level: " + CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation + Environment.NewLine
-                + "Nxt Level: " + CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation + Environment.NewLine
-                + "Prv Horz: " + CalculationSingleton.Instance.ActualCreationScope.PreviousHorizontalDirection + Environment.NewLine
-                + "Act Horz: " + CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection + Environment.NewLine
-                + "Nxt Horz: " + CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection + Environment.NewLine
-                + "Prv Vert: " + CalculationSingleton.Instance.ActualCreationScope.PreviousVerticalDirection + Environment.NewLine
-                + "Act Vert: " + CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection + Environment.NewLine
-                + "Nxt Vert: " + CalculationSingleton.Instance.ActualCreationScope.NextVerticalDirection + Environment.NewLine
+                  "Prv Level: " + Instance.ActualCreationScope.PreviouslyLevelOrientation + Environment.NewLine
+                + "Act Level: " + Instance.ActualCreationScope.ActualLevelOrientation + Environment.NewLine
+                + "Nxt Level: " + Instance.ActualCreationScope.NextLevelOrientation + Environment.NewLine
+                + "Prv Horz: " + Instance.ActualCreationScope.PreviousHorizontalDirection + Environment.NewLine
+                + "Act Horz: " + Instance.ActualCreationScope.ActualHorizontalDirection + Environment.NewLine
+                + "Nxt Horz: " + Instance.ActualCreationScope.NextHorizontalDirection + Environment.NewLine
+                + "Prv Vert: " + Instance.ActualCreationScope.PreviousVerticalDirection + Environment.NewLine
+                + "Act Vert: " + Instance.ActualCreationScope.ActualVerticalDirection + Environment.NewLine
+                + "Nxt Vert: " + Instance.ActualCreationScope.NextVerticalDirection + Environment.NewLine
                 + "Last Trans: " + lastTransition.name + Environment.NewLine
                 + "New block: " + instance.name, instance.transform.position);
 

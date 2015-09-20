@@ -1,10 +1,8 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using Enums;
-using Random = UnityEngine.Random;
-using Blocks;
 using Assets.Scripts.Player;
+using Assets.Scripts.Blocks;
 
 namespace Singleton
 {
@@ -18,6 +16,8 @@ namespace Singleton
 		public KeyCode Right {get; private set;}
         public GameObject Player { get; private set; }
         public PlayerTorch PlayersTorch { get; private set; }
+        public HorzDirection FacingDirection { get; set; }
+        public BlockInfo ActualBlock { get; set; }
 
         private static PlayerSingleton _instance;
 

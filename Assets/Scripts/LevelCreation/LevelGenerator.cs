@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 using Singleton;
 using System;
 using System.Linq;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
 using Enums;
-using Blocks;
-using Singletons;
 using Assets.Scripts.Blocks;
 using Assets.Scripts.Enums;
 
@@ -32,8 +29,8 @@ namespace LevelCreation
 			int levelAreaAmount = Random.Range(3, 10);
             CalculationSingleton.Instance.ActualCreationScope.AreaInfos = PrefabSingleton.Instance.GetNewAreaInfo();
             // Prepare Actual Scope - set the next Orienation twice, so Actual and gets filled - 
-            CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 2);
-            CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 2);
+            CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 1);
+            CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 1);
 
 			for (int i = 0; i < levelAreaAmount; i++) 
 			{
@@ -67,7 +64,7 @@ namespace LevelCreation
                     CalculationSingleton.Instance.ActualCreationScope.ActualTransitionObject = CreateHorizontalArea(areaCount, transitionObject);
 				}
 
-                CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 2);
+                CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 1);
 			}
 		}
 		
@@ -79,11 +76,12 @@ namespace LevelCreation
 		{
             GameObject result = null;
 			GameObject endBlock = null;
+            CalculationSingleton.Instance.ActualCreationScope.ActualLevel.AddRange(CalculationSingleton.Instance.ActualCreationScope.ActualArea);
             CalculationSingleton.Instance.ActualCreationScope.ActualArea.Clear();
 			if (transitonBlock != null)
 			{
 				// If we got a transition block already, add it to the actual area.
-                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(transitonBlock);
+                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(new BlockInfo(transitonBlock));
 			}
 			
 			// If we gave a block into this function, we already have transition - skip the first one.
@@ -135,7 +133,7 @@ namespace LevelCreation
 				}
 				
 				levelBlock.transform.parent = PrefabSingleton.Instance.LevelParent;
-                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(levelBlock);
+                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(new BlockInfo(levelBlock));
 				
 				// Remind the first and teh last block in order to create lights nad plates afterwards
 				transitonBlock = i == 0 ? levelBlock : transitonBlock;
@@ -175,11 +173,12 @@ namespace LevelCreation
 			int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection == VertDirection.Up ? 1 : -1;
 			GameObject endBlock = null;
             GameObject transitionInfo = null;
+            CalculationSingleton.Instance.ActualCreationScope.ActualLevel.AddRange(CalculationSingleton.Instance.ActualCreationScope.ActualArea);
             CalculationSingleton.Instance.ActualCreationScope.ActualArea.Clear();
 			if (transitonBlock != null)
 			{
 				// If we got a transition block already, add it to the actual area.
-                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(transitonBlock);
+                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(new BlockInfo(transitonBlock));
 			}
 
 			// If we gave a block into this function, we already have transition - skip the first one.
@@ -224,7 +223,7 @@ namespace LevelCreation
 				}
 
 				levelBlock.transform.parent = PrefabSingleton.Instance.LevelParent;
-                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(levelBlock);
+                CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(new BlockInfo(levelBlock));
 
 				// Remind the first and teh last block in order to create lights nad plates afterwards
 				transitonBlock = i == 0 ? levelBlock : transitonBlock;
@@ -251,9 +250,10 @@ namespace LevelCreation
 		{
 			float y = startArea.transform.position.y;
 
-            foreach (var levelBlock in CalculationSingleton.Instance.ActualCreationScope.ActualArea)
+            foreach (var blockInfo in CalculationSingleton.Instance.ActualCreationScope.ActualArea)
             {
                 List<int> wallsUsed = new List<int>();
+                GameObject levelBlock = blockInfo.LevelBlock;
 
                 var walls = levelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.Descriptor == WallDescription.Wall);
                 int wallCount = walls.Count() == 4 ? 3 : walls.Count();
@@ -349,7 +349,7 @@ namespace LevelCreation
                     case HorzDirection.Left:
                     case HorzDirection.Right:
                         actualLevelBlock = CalculationSingleton.Instance.ActualCreationScope.ActualArea
-                            .OrderByDescending(bk => bk.transform.position.x).FirstOrDefault(bk => xOrz >= bk.transform.position.x);
+                            .OrderByDescending(bk => bk.LevelBlock.transform.position.x).FirstOrDefault(bk => xOrz >= bk.LevelBlock.transform.position.x).LevelBlock;
                         xOrz += CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left
                             ? HelperSingleton.Instance.GetSize(actualLevelBlock).x
                             : HelperSingleton.Instance.GetSize(actualLevelBlock).x * -1;
@@ -357,7 +357,7 @@ namespace LevelCreation
                     case HorzDirection.Forward:
                     case HorzDirection.Backwards:
                         actualLevelBlock = CalculationSingleton.Instance.ActualCreationScope.ActualArea
-                            .OrderByDescending(bk => bk.transform.position.z).FirstOrDefault(bk => xOrz >= bk.transform.position.z);
+                            .OrderByDescending(bk => bk.LevelBlock.transform.position.z).FirstOrDefault(bk => xOrz >= bk.LevelBlock.transform.position.z).LevelBlock;
                         xOrz += CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
                             ? HelperSingleton.Instance.GetSize(actualLevelBlock).z
                             : HelperSingleton.Instance.GetSize(actualLevelBlock).z * -1;

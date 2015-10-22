@@ -69,8 +69,6 @@ namespace Menu
 		/// <param name="newValue">New value.</param>
 		private void NextLevel()
 		{			
-			HelperSingleton.Instance.DestroyLevel();
-
             PrefabSingleton.Instance.LevelStartup.Seed = HelperSingleton.Instance.CreateSeed();
             PrefabSingleton.Instance.LevelStartup.StartLevel();
 

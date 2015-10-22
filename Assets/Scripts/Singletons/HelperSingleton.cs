@@ -11,87 +11,88 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Singleton;
-using Assets.Scripts.Blocks;
-using Assets.Scripts.Enums;
-using Assets.Scripts.Debug;
+using Blocks;
 using LevelCreation;
 using Enums;
-using Random = UnityEngine.Random;
+using OwnDebug;
+using System.Collections;
 
 namespace Singleton
 {
-	public class HelperSingleton
-	{
-		public string LastLoadedLevel {get; set;}
+    public class HelperSingleton
+    {
+        public string LastLoadedLevel { get; set; }
 
-		private static HelperSingleton _instance;
-		
-		/// <summary>
-		/// Gets instance
-		/// </summary>
-		public static HelperSingleton Instance
-		{
-			get
-			{
-				if (_instance == null) 
-				{
-					_instance = new HelperSingleton();
-				}
-				
-				return _instance;
-			}
-		}
+        private static HelperSingleton _instance;
 
-		/// <summary>
-		/// Sets the cursor.
-		/// </summary>
-		/// <param name="newCursor">New cursor.</param>
-		public GameObject GetTopMostGO(GameObject gameObject, bool getLastTagged)
-		{
-			if (gameObject == null)
-			{
-				return null;
-			}
+        /// <summary>
+        /// Gets instance
+        /// </summary>
+        public static HelperSingleton Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new HelperSingleton();
+                }
 
-			GameObject intermediateResult = null;
-			GameObject parent = gameObject;
-			while (parent.transform.parent != null)
-			{
-				var newParent = parent.transform.parent.gameObject;
+                return _instance;
+            }
+        }
 
-				if (getLastTagged && newParent.tag != "Untagged")
-				{
-					intermediateResult = newParent;
-				}
+        /// <summary>
+        /// Sets the cursor.
+        /// </summary>
+        /// <param name="newCursor">New cursor.</param>
+        public GameObject GetTopMostGO(GameObject gameObject, bool getLastTagged)
+        {
+            if (gameObject == null)
+            {
+                return null;
+            }
 
-				if (newParent.transform.position == Vector3.zero)
-				{
-					// This is only a container - we reached the end!
-					return parent;
-				}
+            GameObject intermediateResult = null;
+            GameObject parent = gameObject;
+            while (parent.transform.parent != null)
+            {
+                var newParent = parent.transform.parent.gameObject;
 
-				parent = newParent;
-			}
+                if (getLastTagged && newParent.tag != "Untagged")
+                {
+                    intermediateResult = newParent;
+                }
 
-			if (parent.tag == "Untagged" && getLastTagged)
-			{
-				// If we wanted to return the last tagged, return it.
-				return intermediateResult != null 
-					? intermediateResult
-					: parent;
-			}
+                if (newParent.transform.position == Vector3.zero)
+                {
+                    // This is only a container - we reached the end!
+                    return parent;
+                }
 
-			return parent;
-		}
+                parent = newParent;
+            }
+
+            if (parent.tag == "Untagged" && getLastTagged)
+            {
+                // If we wanted to return the last tagged, return it.
+                return intermediateResult != null
+                    ? intermediateResult
+                    : parent;
+            }
+
+            return parent;
+        }
 
         /// <summary>
         /// Creates a new seed for the next level
         /// </summary>
         /// <returns></returns>
-        public int CreateSeed()
+        public int CreateSeed(int? newSeed = null)
         {
-            int seed = DateTime.Now.Day + DateTime.Now.Hour + DateTime.Now.Minute + DateTime.Now.Second;
+            int seed = newSeed.HasValue
+                ? newSeed.Value
+                : (DateTime.Now.Hour * DateTime.Now.Minute) + (DateTime.Now.Second * 4) - (DateTime.Now.Second * 2);
+
             Debug.Log("Last seed: " + seed.ToString());
 
             // TODO: Collission detection needed is needed for level block. Seed == 85
@@ -105,78 +106,78 @@ namespace Singleton
         /// <param name="">.</param>
         /// <param name="myPosition">My position.</param>
         public GameObject GetNearestGameObject(IEnumerable<GameObject> objects, Vector3 myPosition)
-		{
-			objects = objects.Distinct();
-			Dictionary<GameObject, float> distanceToObject = new Dictionary<GameObject, float>();
+        {
+            objects = objects.Distinct();
+            Dictionary<GameObject, float> distanceToObject = new Dictionary<GameObject, float>();
 
-			if (!objects.Any() || objects.All(ob => ob == null))
-			{
-				return null;
-			}
+            if (!objects.Any() || objects.All(ob => ob == null))
+            {
+                return null;
+            }
 
-			foreach (var go in objects)
-			{
-				distanceToObject.Add(go, (go.transform.position - myPosition).magnitude);
-			}
+            foreach (var go in objects)
+            {
+                distanceToObject.Add(go, (go.transform.position - myPosition).magnitude);
+            }
 
-			return distanceToObject.OrderBy(pair => pair.Value).First().Key;
-		}
+            return distanceToObject.OrderBy(pair => pair.Value).First().Key;
+        }
 
-		/// <summary>
-		/// Returns the center of the gameobject, using the collidor attached to the go. If no collidier is attached, transform.position is returned.
-		/// </summary>
-		/// <returns>The center of game object.</returns>
-		/// <param name="gameObject">Game object.</param>
-		public Vector3 GetCenterOfGameObject(GameObject gameObject)
-		{
-			var collidor = gameObject.GetComponent<Collider>();
-			if (collidor != null)
-			{
-				return collidor.bounds.center;
-			}
+        /// <summary>
+        /// Returns the center of the gameobject, using the collidor attached to the go. If no collidier is attached, transform.position is returned.
+        /// </summary>
+        /// <returns>The center of game object.</returns>
+        /// <param name="gameObject">Game object.</param>
+        public Vector3 GetCenterOfGameObject(GameObject gameObject)
+        {
+            var collidor = gameObject.GetComponent<Collider>();
+            if (collidor != null)
+            {
+                return collidor.bounds.center;
+            }
 
-			return gameObject.transform.position;
-		}
+            return gameObject.transform.position;
+        }
 
-		/// <summary>
-		/// Splits up.
-		/// </summary>
-		/// <returns>The up.</returns>
-		/// <param name="splitUp">Split up.</param>
-		public string SplitUp(string splitUp)
-		{
-			string output = String.Empty;
-			foreach (char letter in splitUp)
-			{
-				if (Char.IsUpper(letter) && output.Length > 0)
-					output += " " + letter;
-				else
-					output += letter;
-			}
+        /// <summary>
+        /// Splits up.
+        /// </summary>
+        /// <returns>The up.</returns>
+        /// <param name="splitUp">Split up.</param>
+        public string SplitUp(string splitUp)
+        {
+            string output = String.Empty;
+            foreach (char letter in splitUp)
+            {
+                if (Char.IsUpper(letter) && output.Length > 0)
+                    output += " " + letter;
+                else
+                    output += letter;
+            }
 
-			return output;
-		}
+            return output;
+        }
 
-		/// <summary>
-		/// Destroies the level.
-		/// </summary>
-		public void DestroyLevel()
-		{
+        /// <summary>
+        /// Destroies the level.
+        /// </summary>
+        public void DestroyLevel()
+        {
             PrefabSingleton.Instance.CeillingParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
-			PrefabSingleton.Instance.LevelParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
-			PrefabSingleton.Instance.PickupParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
-			PrefabSingleton.Instance.StandBlockParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+            PrefabSingleton.Instance.LevelParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+            PrefabSingleton.Instance.PickupParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
+            PrefabSingleton.Instance.StandBlockParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
             PrefabSingleton.Instance.DebugParent.transform.Cast<Transform>().ToList().ForEach(tr => GameObject.Destroy(tr.gameObject));
-			
-			// Destroy all Hearts
-			var hearts = GameObject.FindGameObjectsWithTag("Heart");
-			foreach (var heart in hearts) 
-			{
-				GameObject.Destroy(heart);
-			}
+
+            // Destroy all Hearts
+            var hearts = GameObject.FindGameObjectsWithTag("Heart");
+            foreach (var heart in hearts)
+            {
+                GameObject.Destroy(heart);
+            }
 
             CalculationSingleton.Instance.ActualCreationScope = new CreationScope();
-		}
+        }
 
         /// <summary>
         /// Create an empty GO at a specific point with a given text.
@@ -277,7 +278,7 @@ namespace Singleton
             {
                 return HorzDirection.Forward;
             }
-            else if (direction == HorzDirection.Forward) 
+            else if (direction == HorzDirection.Forward)
             {
                 return HorzDirection.Backwards;
             }
@@ -339,7 +340,7 @@ namespace Singleton
                 z = lastPosition.z + (lastBlockSize.z * dirMulti);
             }
 
-            return new Vector3(x, transitonBlock == null ? 0 : transitonBlock.transform.position.y, z);		
+            return new Vector3(x, transitonBlock == null ? 0 : transitonBlock.transform.position.y, z);
         }
 
         /// <summary>
@@ -347,6 +348,8 @@ namespace Singleton
         /// </summary>
         /// <returns>The size.</returns>
         /// <param name="objectToCheck">Object to check.</param>
+        /// <param name="getForMaster">If TRUE, the MASTERRENDERTAG is used - this one is used for level blocks - DEFAULT!
+        /// Otherwise RENDEROBJECT is used - it is used for all other objects</param>
         public Vector3 GetSize(GameObject objectToCheck, bool getForMaster = true)
         {
             string tag = getForMaster
@@ -370,7 +373,7 @@ namespace Singleton
                 : objectToCheck.GetComponentsInChildren<Renderer>(true).ToList().FirstOrDefault(rend => rend.gameObject.tag == tag);
             if (renderer == null)
             {
-                Debug.LogError(String.Concat("No ", tag , " found for: ", objectToCheck.name));
+                Debug.LogError(String.Concat("No ", tag, " found for: ", objectToCheck.name));
             }
 
             var result = renderer != null
@@ -427,7 +430,7 @@ namespace Singleton
                     {
                         // The exit is not on the oder side of the block, but on a side- adapt X Position for actual created item
                         float newZ = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
-                            ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - Math.Abs(exitWallActEntry.transform.localPosition.z)
+                            ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z + Math.Abs(exitWallActEntry.transform.localPosition.z)
                             : CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - Math.Abs(exitWallPrevExit.transform.localPosition.z);
                         CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, actPos.y, newZ);
                     }
@@ -448,7 +451,7 @@ namespace Singleton
                     exitWallPrevExit = allWallsWithExitPrevious != null ? allWallsWithExitPrevious.OrderBy(wall => wall.transform.localPosition.x).LastOrDefault() : null;
                     exitWallActEntry = allWallsWithExitActual != null ? allWallsWithExitActual.OrderBy(wall => wall.transform.localPosition.x).FirstOrDefault() : null;
                 }
-                
+
                 if (exitWallPrevExit != null && exitWallActEntry != null)
                 {
                     // Adapt Z Position for actual created item
@@ -484,6 +487,35 @@ namespace Singleton
         {
             return Math.Abs(descriptorA.WallNumber - descriptorB.WallNumber) == 2
                 || Math.Abs(descriptorA.WallNumber - descriptorB.WallNumber) == 0;
+        }
+
+        /// <summary>
+        /// Waits for an amount of frames.
+        /// </summary>
+        /// <param name="frameCount">Amount of frames to be waited.</param>
+        /// <returns></returns>
+        public IEnumerator WaitForFrames(int frameCount)
+        {
+            if (frameCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException("frameCount", "Cannot wait for less that 1 frame");
+            }
+
+            while (frameCount > 0)
+            {
+                frameCount--;
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        /// Waits for an amount of seconds
+        /// </summary>
+        /// <param name="frameCount">Amount of seconds to be waited.</param>
+        /// <returns></returns>
+        public IEnumerator WaitForSeconds(int seconds)
+        {
+            yield return new WaitForSeconds(seconds);
         }
     }
 }

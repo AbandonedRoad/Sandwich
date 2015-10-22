@@ -14,12 +14,12 @@ using Singleton;
 using Player;
 using System.Linq;
 using Enums;
+using UnityStandardAssets.Characters.FirstPerson;
 
 namespace LevelCreation
 {
 	public class LevelStartup : MonoBehaviour
 	{
-		private LevelGenerator _levelGenerator;
 		public int Seed;
 
 		/// <summary>
@@ -27,13 +27,22 @@ namespace LevelCreation
 		/// </summary>
 		public void StartLevel()
 		{
-			if (Seed > 0)
+            HelperSingleton.Instance.DestroyLevel();
+
+            var controller = PlayerSingleton.Instance.Player.GetComponentInChildren<PlayerCrawlerController>();
+
+            if (controller != null)
+            {
+                controller.Reset();
+            }
+
+            if (Seed > 0)
 			{
-				_levelGenerator = new LevelGenerator(Seed);
-				_levelGenerator.CreateNewLevel();
+                StartCoroutine(PrefabSingleton.Instance.LevelGenerator.CreateNewLevel(Seed));
 
                 PlayerSingleton.Instance.CoinAmount = 0;
                 PlayerSingleton.Instance.LevelStartDate = DateTime.Now;
+                PlayerSingleton.Instance.PlayerPosition = new Vector2(0, 0);
 
 				PlayerSingleton.Instance.Player.GetComponent<FallDamage>().ApplyNormal();
                 PlayerSingleton.Instance.Player.GetComponent<PlayerUpdates>().ResetHealth();
@@ -41,7 +50,7 @@ namespace LevelCreation
                 // Set Player to correct position.
                 var firstBlock = CalculationSingleton.Instance.ActualCreationScope.ActualLevel[0];
                 var secondBlock = CalculationSingleton.Instance.ActualCreationScope.ActualLevel[1];
-                PlayerSingleton.Instance.Player.transform.position = new Vector3(firstBlock.LevelBlock.transform.position.x, 1.813f, firstBlock.LevelBlock.transform.position.z);
+                PlayerSingleton.Instance.Player.transform.position = new Vector3(firstBlock.LevelBlock.transform.position.x, 1.9f, firstBlock.LevelBlock.transform.position.z);
 
                 if (CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Left
                     || CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection == HorzDirection.Right)
@@ -57,12 +66,16 @@ namespace LevelCreation
                         ? Quaternion.Euler(new Vector3(0, 0, 0))
                         : Quaternion.Euler(new Vector3(0, 180, 0));
                 }
+
                 PlayerSingleton.Instance.FacingDirection = CalculationSingleton.Instance.ActualCreationScope.FirstHorizontalDirection;
+                PrefabSingleton.Instance.LevelGeneratorAftermath.DuplicateHandling(true);
             }
 			else
 			{
 				// Debug.LogError("No Seed! Level will not be creatd!");
 			}
-		}
+
+            DebugSingleton.Instance.UpdateDebugDate();
+        }
 	}
 }

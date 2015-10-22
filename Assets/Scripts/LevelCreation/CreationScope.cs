@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using Enums;
 using Singleton;
-using Assets.Scripts.Blocks;
+using Blocks;
 using System.Linq;
-using Assets.Scripts.Enums;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
 using Assets.Scripts.Campaign;
@@ -190,39 +189,45 @@ namespace LevelCreation
         /// Returns the correct rotation for the given horizonzal rotations.
         /// </summary>
         /// <returns></returns>
-        public void CalculateRotationForHorizontalCorner()
+        public void CalculateRotationForHorizontalCorner(HorzDirection actual = HorzDirection.NotSet, HorzDirection next = HorzDirection.NotSet)
         {
             WallDescriptor wallToUse = null;
             var wall1 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 0).First();
             var wall2 = ActualCreatedLevelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.WallNumber == 1).First();
 
-            if (ActualHorizontalDirection == HorzDirection.Backwards)
+            actual = actual == HorzDirection.NotSet
+                ? ActualHorizontalDirection
+                : actual;
+            next = next == HorzDirection.NotSet
+                ? NextHorizontalDirection
+                : next;
+
+            if (actual == HorzDirection.Backwards)
             {
-                wallToUse = NextHorizontalDirection == HorzDirection.Left
+                wallToUse = next == HorzDirection.Left
                     ? wall2
                     : wall1;
             }
-            else if (ActualHorizontalDirection == HorzDirection.Right)
+            else if (actual == HorzDirection.Right)
             {
-                wallToUse = NextHorizontalDirection == HorzDirection.Backwards
+                wallToUse = next == HorzDirection.Backwards
                     ? wall2
                     : wall1;
             }
-            else if (ActualHorizontalDirection == HorzDirection.Forward)
+            else if (actual == HorzDirection.Forward)
             {
-                wallToUse = NextHorizontalDirection == HorzDirection.Right
+                wallToUse = next == HorzDirection.Right
                     ? wall2
                     : wall1;
             }
-            else if (ActualHorizontalDirection == HorzDirection.Left)
+            else if (actual == HorzDirection.Left)
             {
-                wallToUse = NextHorizontalDirection == HorzDirection.Forward
+                wallToUse = next == HorzDirection.Forward
                     ? wall2
                     : wall1;
             }
 
-            wallToUse.RotateWallFacesDirection(NextHorizontalDirection);
-            wallToUse.transform.parent.gameObject.name = "Act Rot: " + wallToUse.transform.parent.gameObject.transform.rotation.ToString();
+            wallToUse.RotateWallFacesDirection(next);
         }
 
         /// <summary>
@@ -353,14 +358,22 @@ namespace LevelCreation
 
         /// <summary>
         /// Gets a new Horizontal Direction
+        /// <param name="overrideRandom">If set, this direction will be used instead of random</param>
         /// </summary>
-        public void GetNewHorzDirection()
+        public void GetNewHorzDirection(HorzDirection overrideRandom = HorzDirection.NotSet)
         {
-            HorzDirection newHorzDirection = (HorzDirection)Random.Range(0, 4);
-
-            while (newHorzDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection))
+            HorzDirection newHorzDirection;
+            if (overrideRandom == HorzDirection.NotSet)
             {
                 newHorzDirection = (HorzDirection)Random.Range(0, 4);
+                while (newHorzDirection == HelperSingleton.Instance.GetOpposite(CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection))
+                {
+                    newHorzDirection = (HorzDirection)Random.Range(0, 4);
+                }
+            }
+            else
+            {
+                newHorzDirection = overrideRandom;
             }
 
             CalculationSingleton.Instance.ActualCreationScope.NextHorizontalDirection = newHorzDirection;

@@ -1,32 +1,25 @@
 ﻿using UnityEngine;
 using Singleton;
-using System;
 using System.Linq;
 using Random = UnityEngine.Random;
-using System.Collections.Generic;
 using Enums;
-using Assets.Scripts.Blocks;
-using Assets.Scripts.Enums;
+using Blocks;
+using System.Collections;
 
 namespace LevelCreation
 {
-	public class LevelGenerator
+	public class LevelGenerator : MonoBehaviour
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LevelCreation"/> class.
-		/// </summary>
-		/// <param name="seed">Seed.</param>
-		public LevelGenerator (int seed)
-		{
-			Random.seed = seed;
-		}
+        private readonly ContentGenerator _contentGenerator = new ContentGenerator();
 
-		/// <summary>
+    	/// <summary>
 		/// Creates the new level.
 		/// </summary>
-		public void CreateNewLevel()
+		public IEnumerator CreateNewLevel(int seed)
 		{
-			int levelAreaAmount = Random.Range(3, 10);
+            Random.seed = seed;
+
+            int levelAreaAmount = Random.Range(3, 10);
             CalculationSingleton.Instance.ActualCreationScope.AreaInfos = PrefabSingleton.Instance.GetNewAreaInfo();
             // Prepare Actual Scope - set the next Orienation twice, so Actual and gets filled - 
             CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 1);
@@ -66,7 +59,10 @@ namespace LevelCreation
 
                 CalculationSingleton.Instance.ActualCreationScope.NextLevelOrientation = (LevelOrientation)Random.Range(0, 1);
 			}
-		}
+
+            // Wait for .5f seconds to allow everything to initialize.
+            yield return new WaitForSeconds(.5f);
+        }
 		
 		/// <summary>
 		/// Creates the level blocks.
@@ -76,7 +72,6 @@ namespace LevelCreation
 		{
             GameObject result = null;
 			GameObject endBlock = null;
-            CalculationSingleton.Instance.ActualCreationScope.ActualLevel.AddRange(CalculationSingleton.Instance.ActualCreationScope.ActualArea);
             CalculationSingleton.Instance.ActualCreationScope.ActualArea.Clear();
 			if (transitonBlock != null)
 			{
@@ -131,38 +126,26 @@ namespace LevelCreation
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                     HelperSingleton.Instance.AdaptPositonForExit();
 				}
-				
-				levelBlock.transform.parent = PrefabSingleton.Instance.LevelParent;
+
+                levelBlock.transform.parent = PrefabSingleton.Instance.LevelParent;
                 CalculationSingleton.Instance.ActualCreationScope.ActualArea.Add(new BlockInfo(levelBlock));
 				
 				// Remind the first and teh last block in order to create lights nad plates afterwards
 				transitonBlock = i == 0 ? levelBlock : transitonBlock;
 				endBlock = i == areaCount -1 ? levelBlock : endBlock;
 
-                AddEnemey(levelBlock);
+                _contentGenerator.AddEnemey(levelBlock);
 			}
 
-			// Decide which object to place - do not place on ground floor.
-			PlaceHorinzalContent(transitonBlock, endBlock);
+            // Add actual area to whole leve.
+            CalculationSingleton.Instance.ActualCreationScope.ActualLevel.AddRange(CalculationSingleton.Instance.ActualCreationScope.ActualArea);
+
+            // Decide which object to place - do not place on ground floor.
+            _contentGenerator.PlaceHorinzalContent(transitonBlock, endBlock);
 
 			// Return result
 			return result;
 		}
-
-        /// <summary>
-        /// Adds an enemy to an Horizinotal block
-        /// </summary>
-        /// <param name="levelBlock"></param>
-        private void AddEnemey(GameObject levelBlock)
-        {
-            if (Random.Range(0, 5) == 0)
-            {
-                Vector3 position = new Vector3(levelBlock.transform.position.x, levelBlock.transform.position.y + .5f, levelBlock.transform.position.z);
-                
-                // Add an enemy if needed
-                // PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Roller, position);
-            }
-        }
 
 		/// <summary>
 		/// Creates the level blocks.
@@ -173,7 +156,6 @@ namespace LevelCreation
 			int dirMulti = CalculationSingleton.Instance.ActualCreationScope.ActualVerticalDirection == VertDirection.Up ? 1 : -1;
 			GameObject endBlock = null;
             GameObject transitionInfo = null;
-            CalculationSingleton.Instance.ActualCreationScope.ActualLevel.AddRange(CalculationSingleton.Instance.ActualCreationScope.ActualArea);
             CalculationSingleton.Instance.ActualCreationScope.ActualArea.Clear();
 			if (transitonBlock != null)
 			{
@@ -235,187 +217,14 @@ namespace LevelCreation
 				new Vector3(endBlock.transform.position.x, endBlock.transform.position.y + blockSize.y, endBlock.transform.position.z));
 			ceilling.transform.parent = PrefabSingleton.Instance.CeillingParent;
 
-			// Decide which object to place - do not place on ground floor.
-			PlaceVerticalContent(transitonBlock, endBlock);
+            // Decide which object to place - do not place on ground floor.
+            _contentGenerator.PlaceVerticalContent(transitonBlock, endBlock);
 
-			// Return result
-			return transitionInfo;
-		}
+            // Add area to level
+            CalculationSingleton.Instance.ActualCreationScope.ActualLevel.AddRange(CalculationSingleton.Instance.ActualCreationScope.ActualArea);
 
-		/// <summary>
-		/// Places the stand blocks.
-		/// </summary>
-		/// <param name="blockAmount">Block amount.</param>
-        private void PlaceVerticalContent(GameObject startArea, GameObject endArea)
-		{
-			float y = startArea.transform.position.y;
-
-            foreach (var blockInfo in CalculationSingleton.Instance.ActualCreationScope.ActualArea)
-            {
-                List<int> wallsUsed = new List<int>();
-                GameObject levelBlock = blockInfo.LevelBlock;
-
-                var walls = levelBlock.transform.GetComponentsInChildren<WallDescriptor>().Where(wl => wl.Descriptor == WallDescription.Wall);
-                int wallCount = walls.Count() == 4 ? 3 : walls.Count();
-                for (int i = 0; i < 2; i++)
-                {
-                    var remainingWalls = walls.ToList();
-                    VertOrientation verticalOrientation = i == 1
-                        ? VertOrientation.Center
-                        : VertOrientation.Top;
-                    for (int stand = 0; stand < wallCount; stand++)
-                    {
-                        if (!levelBlock.transform.GetComponentsInChildren<BlockDescriptor>().First().NeedsStairs)
-                        {
-                            // If no stairs are needed, do not create one.
-                            continue;
-                        }
-
-                        GameObject standBlock = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.RectStandBlock);
-                        int wall;
-                        while (true)
-                        {
-                            wall = Random.Range(0, 4);
-                            if (!walls.Any(wl => wl.WallNumber == wall))
-                            {
-                                // Continue because we have a door/nothing/exit in the wall we want to place the object in
-                                continue;
-                            }
-
-                            if (remainingWalls.Any(wl => wl.WallNumber == wall))
-                            {
-                                remainingWalls = remainingWalls.Where(wl => wl.WallNumber != wall).ToList();
-                                break;
-                            }
-
-                            if (!remainingWalls.Any())
-                            {
-                                // List is empty
-                                break;
-                            }
-                        }
-
-                        CalculationSingleton.Instance.OrientationCalculation.Init(levelBlock.GetComponentsInChildren<WallDescriptor>().First(wl => wl.WallNumber == wall), standBlock);
-                        CalculationSingleton.Instance.OrientationCalculation.SetOrienation(HorzOrientation.Randomize, verticalOrientation);
-                        CalculationSingleton.Instance.GetPositionForObject(HorzOrientation.Randomize, verticalOrientation);
-                        CreateCoin(standBlock, HorzOrientation.Center);
-                    }
-
-                    if (verticalOrientation == VertOrientation.Top)
-                    {
-                        // Place light
-                        if (remainingWalls.Any())
-                        {
-                            CreateLights(levelBlock, remainingWalls.First().WallNumber);
-                        }
-                    }
-                }			
-            }
-		}
-
-		/// <summary>
-		/// Places the stand blocks.
-		/// </summary>
-		/// <param name="blockAmount">Block amount.</param>
-		private void PlaceHorinzalContent(GameObject startArea, GameObject endArea)
-		{
-            float xOrz = (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left
-                || CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right)
-                ? startArea.transform.position.x
-                : startArea.transform.position.z;
-            int counter = 0;
-            
-			while(true)
-			{
-                if (counter > 100)
-                {
-                    Debug.Log(String.Concat("Counter is more than ", counter, "! Abort"));
-                    break;
-                }
-                counter++;
-
-                if ((CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left && xOrz > endArea.transform.position.x)
-                    || (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right && xOrz < endArea.transform.position.x)
-                    || (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward && xOrz > endArea.transform.position.z)
-                    || (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Backwards && xOrz < endArea.transform.position.z))
-				{
-					// Reached the end - break
-					break;
-				}
-
-                GameObject actualLevelBlock;
-                switch (CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection)
-                {
-                    case HorzDirection.Left:
-                    case HorzDirection.Right:
-                        actualLevelBlock = CalculationSingleton.Instance.ActualCreationScope.ActualArea
-                            .OrderByDescending(bk => bk.LevelBlock.transform.position.x).FirstOrDefault(bk => xOrz >= bk.LevelBlock.transform.position.x).LevelBlock;
-                        xOrz += CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Left
-                            ? HelperSingleton.Instance.GetSize(actualLevelBlock).x
-                            : HelperSingleton.Instance.GetSize(actualLevelBlock).x * -1;
-                        break;
-                    case HorzDirection.Forward:
-                    case HorzDirection.Backwards:
-                        actualLevelBlock = CalculationSingleton.Instance.ActualCreationScope.ActualArea
-                            .OrderByDescending(bk => bk.LevelBlock.transform.position.z).FirstOrDefault(bk => xOrz >= bk.LevelBlock.transform.position.z).LevelBlock;
-                        xOrz += CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
-                            ? HelperSingleton.Instance.GetSize(actualLevelBlock).z
-                            : HelperSingleton.Instance.GetSize(actualLevelBlock).z * -1;
-                        break;
-                    default:
-                        throw new ArgumentException("Type not supported");
-                }
-
-                if (Random.Range(0, 12) == 0)
-                {
-                    // Create a light, if random fights
-                    CreateLights(actualLevelBlock, -1);
-                }
-			}
-		}
-
-		/// <summary>
-		/// Creates the lights.
-		/// </summary>
-		/// <param name="wall">Wall.</param>
-		private void CreateLights(GameObject levelBlock, int wall)
-		{
-            if (CalculationSingleton.Instance.ActualCreationScope.ActualLevelOrientation == LevelOrientation.Vertical)
-			{
-                var light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
-                CalculationSingleton.Instance.OrientationCalculation.Init(levelBlock.GetComponentsInChildren<WallDescriptor>().First(wl => wl.WallNumber == wall), light);
-                CalculationSingleton.Instance.OrientationCalculation.SetOrienation(HorzOrientation.Center, VertOrientation.Center);
-                CalculationSingleton.Instance.GetPositionForObject();
-                light.SetActive(false);
-                light.SetActive(true);
-            }
-			else
-			{
-                var wallObject = HelperSingleton.Instance.GetAllRealWalls(levelBlock).First();
-                var light = PrefabSingleton.Instance.Create(PrefabSingleton.Instance.Torch);
-                CalculationSingleton.Instance.OrientationCalculation.Init(wallObject, light);
-                CalculationSingleton.Instance.GetPositionForObject();
-                light.SetActive(false);
-                light.SetActive(true);
-			}
-		}
-
-		/// <summary>
-		/// Creates the coin.
-		/// </summary>
-		/// <param name="standBlock">Stand block.</param>
-        private void CreateCoin(GameObject standBlock, HorzOrientation orientation)
-		{
-			int coinSpawn = PlayerSingleton.Instance.Difficulty == Difficulty.Hard ? 3 : -1;
-			coinSpawn = PlayerSingleton.Instance.Difficulty == Difficulty.VeryHard ? 4 : coinSpawn;
-			coinSpawn = PlayerSingleton.Instance.Difficulty == Difficulty.NintendoHard ? 5 : coinSpawn;
-
-			if (Random.Range(0, coinSpawn) == 0)
-			{
-				// Place a coin, if we are lucky
-                var coin = CalculationSingleton.Instance.PlaceOnTopOfObject(standBlock, PrefabSingleton.Instance.Coin, HorzOrientation.Center);
-				coin.transform.parent = PrefabSingleton.Instance.PickupParent;
-			}
+            // Return result
+            return transitionInfo;
 		}
 	}
 }

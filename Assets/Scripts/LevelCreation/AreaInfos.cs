@@ -23,8 +23,9 @@ namespace LevelCreation
 		public GameObject VTransition {get; set;} 
 		public GameObject VExit {get; set;}
 
-		public GameObject HFloor {get; set;} 
-		public List<GameObject> HBlock {get; set;} 
+		public GameObject HFloor {get; set;}
+        public GameObject HCrossing { get; set; }
+        public List<GameObject> HBlock {get; set;} 
 		public GameObject HTransition {get; set;} 
 		public GameObject HExit {get; set;}
         public GameObject HCorner { get; set; }
@@ -32,15 +33,16 @@ namespace LevelCreation
         /// <summary>
         /// Gets a HBLock entry by random
         /// </summary>
+        /// <param name="noSpecials">If set to TRUE, only the default HBlock will be returned. No special Blocks</param>
         /// <returns></returns>
-        public GameObject GetHBlock()
+        public GameObject GetHBlock(bool noSpecials = false)
         {
             int borderForDefaultBlock = 19;
 
             int max = borderForDefaultBlock + HBlock.Count;
             int range = Random.Range(0, max);
 
-            if (range <= borderForDefaultBlock)
+            if (range <= borderForDefaultBlock || noSpecials)
             {
                 // Return default block
                 return HBlock[0];

@@ -4,7 +4,7 @@ using Singleton;
 using System;
 using UnityEngine;
 
-namespace Assets.Scripts.Blocks
+namespace Blocks
 {
     public class WallDescriptor : MonoBehaviour
     {

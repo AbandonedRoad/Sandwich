@@ -60,8 +60,6 @@ namespace Menu
 		/// <param name="newValue">New value.</param>
 		private void RestartGame()
 		{
-			HelperSingleton.Instance.DestroyLevel();
-
 			PlayerSingleton.Instance.PlayerHealth = PlayerSingleton.Instance.TotalHealth;
 			PrefabSingleton.Instance.LevelStartup.StartLevel();
 

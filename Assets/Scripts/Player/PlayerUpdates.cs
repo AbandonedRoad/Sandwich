@@ -12,7 +12,7 @@ using Singleton;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
-using Assets.Scripts.Blocks;
+using Blocks;
 
 namespace Player
 {
@@ -26,10 +26,10 @@ namespace Player
 		private float _actualHealth;
 		private bool _playerWon;
 
-		/// <summary>
-		/// Start this instance.
-		/// </summary>
-		void Start()
+        /// <summary>
+        /// Start this instance.
+        /// </summary>
+        void Start()
 		{
 			_actualHealth = PlayerSingleton.Instance.PlayerHealth;
 

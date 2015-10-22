@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using Enums;
 using Assets.Scripts.Player;
-using Assets.Scripts.Blocks;
+using Blocks;
 
 namespace Singleton
 {
@@ -50,10 +50,20 @@ namespace Singleton
 		/// <value>The difficulty.</value>
 		public Difficulty Difficulty {get; set;}
 
-		/// <summary>
-		/// Gets instance
-		/// </summary>
-		public static PlayerSingleton Instance
+        /// <summary>
+        /// The Position of the player.
+        /// </summary>
+        public Vector2 PlayerPosition { get; set; }
+
+        /// <summary>
+        /// The length of one step by the player.
+        /// </summary>
+        public float PlayerStepLength { get; private set; }
+
+        /// <summary>
+        /// Gets instance
+        /// </summary>
+        public static PlayerSingleton Instance
 		{
 			get 
 			{
@@ -84,6 +94,8 @@ namespace Singleton
 
             Player = GameObject.Find("Player");
             PlayersTorch = GameObject.Find("PlayersTorch").GetComponent<PlayerTorch>();
+
+            PlayerStepLength = 4f;
         }	
 	}
 }

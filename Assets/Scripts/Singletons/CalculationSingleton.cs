@@ -3,9 +3,7 @@ using System.Linq;
 using UnityEngine;
 using Enums;
 using LevelCreation;
-using System.Collections.Generic;
-using Assets.Scripts.Blocks;
-using Assets.Scripts.Enums;
+using Blocks;
 
 namespace Singleton
 {
@@ -13,7 +11,15 @@ namespace Singleton
 	{
 		private static CalculationSingleton _instance;
 
+        /// <summary>
+        /// Distance how high te player may jump
+        /// </summary>
 		public float JumpDistance = 2.25f;
+
+        /// <summary>
+        /// Size of one block
+        /// </summary>
+        public float BlockSize = 8f;
 
         public CreationScope ActualCreationScope { get; set; }
 
@@ -238,19 +244,25 @@ namespace Singleton
 		}
 
         /// <summary>
-        /// Returns the block from an area which matches the y pos.
+        /// Re - Assigns all Predecessor and Succeors for the whole Level.
         /// </summary>
-        /// <param name="area"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public GameObject GetBlockFromArea(IEnumerable<GameObject> area, float y)
+        public void ReAssignAllPredecessorsSuccessors()
         {
-            GameObject result;
+            for (int i = 0; i < ActualCreationScope.ActualLevel.Count; i++)
+            {
+                // Get Blocks.
+                var prvOne = i > 0
+                    ? ActualCreationScope.ActualLevel[i - 1]
+                    : null;
+                var block = this.ActualCreationScope.ActualLevel[i];
+                var nextOne = i < ActualCreationScope.ActualLevel.Count - 1
+                    ? ActualCreationScope.ActualLevel[i + 1]
+                    : null;
 
-            area = area.OrderByDescending(bk => bk.transform.position.y);
-            result = area.FirstOrDefault(bk => Math.Round(y, 1) >= Math.Round(bk.transform.position.y, 1));
-
-            return result;
+                // Assign
+                block.CollisionInfo.Predecessor = prvOne != null ? prvOne.LevelBlock : null;
+                block.CollisionInfo.Successor = nextOne != null ? nextOne.LevelBlock : null;
+            }
         }
     }
 }

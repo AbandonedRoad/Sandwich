@@ -28,11 +28,13 @@ namespace Menu
 		private Button _campaignButton;
 		private Button _skirmishButton;
 		private Button _optionsButton;
-		
-		/// <summary>
-		/// Start this instance.
-		/// </summary>
-		void Awake()
+        private Button _restartButton;
+        private Text _seedInput;
+
+        /// <summary>
+        /// Start this instance.
+        /// </summary>
+        void Awake()
 		{
 			_menuPanel = GameObject.Find("StartPanel");
 			
@@ -40,13 +42,16 @@ namespace Menu
 			_skirmishButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "SkirmishButton");
 			_optionsButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "OptionsButton");
 			_exitButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "ExitButton");
+            _restartButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "RestartButton");
+            _seedInput = _menuPanel.GetComponentsInChildren<Text>().First(inp => inp.name == "SeedInput");
 
-			// This is a setup for a button that grabs the field value when pressed
-			_campaignButton.onClick.AddListener(() => StartCampaign());
+            // This is a setup for a button that grabs the field value when pressed
+            _campaignButton.onClick.AddListener(() => StartCampaign());
 			_skirmishButton.onClick.AddListener(() => StartSkirmish());
 			_optionsButton.onClick.AddListener(() => ShowOptions());
 			_exitButton.onClick.AddListener(() => ExitGame());
-		}
+            _restartButton.onClick.AddListener(() => RestartGame());
+        }
 	
 		/// <summary>
 		/// Switchs the scene end panel.
@@ -59,12 +64,12 @@ namespace Menu
 				_menuPanel.transform.SetAsLastSibling();
 			}
 		}
-		
-		/// <summary>
-		/// Adapts the worker speed.
-		/// </summary>
-		/// <param name="newValue">New value.</param>
-		private void StartCampaign()
+
+        /// <summary>
+        /// Adapts the worker speed.
+        /// </summary>
+        /// <param name="newValue">New value.</param>
+        private void StartCampaign()
 		{			
 			SwitchStartPanel();
 
@@ -79,21 +84,26 @@ namespace Menu
 		{
 			SwitchStartPanel();
 
-            // Destroy, if needed
-            HelperSingleton.Instance.DestroyLevel();
-
             int textureType = Random.Range(0, 2);
 
             CalculationSingleton.Instance.ActualCreationScope.ActualCampaign = (Campaigns)textureType;
 
-			PrefabSingleton.Instance.LevelStartup.Seed = HelperSingleton.Instance.CreateSeed();
-			PrefabSingleton.Instance.LevelStartup.StartLevel();
+            int newValue;
+            if (int.TryParse(_seedInput.text, out newValue))
+            {
+                PrefabSingleton.Instance.LevelStartup.Seed = HelperSingleton.Instance.CreateSeed(newValue);
+            }
+            else
+            {
+                PrefabSingleton.Instance.LevelStartup.Seed = HelperSingleton.Instance.CreateSeed();
+            }                
+
+            PrefabSingleton.Instance.LevelStartup.StartLevel();
 		}
 
 		/// <summary>
-		/// Adapts the worker speed.
+		/// Shows the options
 		/// </summary>
-		/// <param name="newValue">New value.</param>
 		private void ShowOptions()
 		{
 			SwitchStartPanel();
@@ -101,12 +111,19 @@ namespace Menu
 		}
 		
 		/// <summary>
-		/// Adapts the worker speed.
+		/// Exits the game.
 		/// </summary>
-		/// <param name="newValue">New value.</param>
 		private void ExitGame()
 		{
 			
 		}
-	}
+
+        /// <summary>
+        /// Restarts the Current Level.
+        /// </summary>
+        private void RestartGame()
+        {
+            PrefabSingleton.Instance.LevelStartup.StartLevel();
+        }
+    }
 }

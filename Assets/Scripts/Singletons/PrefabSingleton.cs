@@ -3,10 +3,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 using LevelCreation;
-using Enums;
 using Misc;
 using Menu;
 using Assets.Scripts.Campaign;
+using System.Linq;
+using Blocks;
 
 namespace Singleton
 {
@@ -36,6 +37,7 @@ namespace Singleton
 		public GameObject HorzRedBricksExitPrefab {get; private set;}
 		public GameObject HorzRedBricksEnd {get; private set;}
         public GameObject HorzRedBricksCornerPrefab { get; private set; }
+        public GameObject HorzRedBricksCrossingPrefab { get; private set; }
 
         public GameObject HorzSewer { get; private set; }
         public GameObject HorzSewerSpec1 { get; private set; }
@@ -67,13 +69,17 @@ namespace Singleton
 		public SceneStatisticsHandler SceneStatistics {get; private set;}
 		public InputHandler InputHandler {get; private set;}
 		public MenuHandler MenuHandler {get; private set;}
+        public DebugHandler DebugHandler { get; private set; }
         public CampaignHandler CampaignHandler { get; private set; }
 		public LevelStartup LevelStartup {get; private set;}
+        public LevelGenerator LevelGenerator { get; private set; }
+        public LevelGeneratorAftermath LevelGeneratorAftermath { get; private set; }
+        public Wait Waiter { get; private set; }
 
-		/// <summary>
-		/// Gets instance
-		/// </summary>
-		public static PrefabSingleton Instance
+        /// <summary>
+        /// Gets instance
+        /// </summary>
+        public static PrefabSingleton Instance
 		{
 			get 
 			{
@@ -92,7 +98,7 @@ namespace Singleton
 		/// </summary>
 		public void Init ()
 		{
-			Screams = new Dictionary<int, AudioClip>();
+            Screams = new Dictionary<int, AudioClip>();
 			Screams.Add(0, Resources.Load("Sounds/Scream1") as AudioClip);
 			Screams.Add(1, Resources.Load("Sounds/Scream2") as AudioClip);
 
@@ -120,6 +126,7 @@ namespace Singleton
 			HorzRedBricksDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksDoorPrefab") as GameObject;
 			HorzRedBricksExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksExitPrefab") as GameObject;
             HorzRedBricksCornerPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksCornerPrefab") as GameObject;
+            HorzRedBricksCrossingPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksCrossingPrefab") as GameObject;
 
             // Sewer Parts
             HorzSewer = Resources.Load("Prefabs/LevelBlocks/HorzSewerPrefab") as GameObject;
@@ -165,10 +172,14 @@ namespace Singleton
 			SceneStatistics = handlingPrefab.GetComponent<SceneStatisticsHandler>(); 
 			LevelStartup = handlingPrefab.GetComponent<LevelStartup>();
 			MenuHandler = handlingPrefab.GetComponent<MenuHandler>();
+            DebugHandler = handlingPrefab.GetComponent<DebugHandler>();
             CampaignHandler = handlingPrefab.GetComponent<CampaignHandler>(); 
 			InputHandler = handlingPrefab.GetComponent<InputHandler>();
+            Waiter = handlingPrefab.GetComponent<Wait>();
+            LevelGenerator = handlingPrefab.GetComponent<LevelGenerator>();
+            LevelGeneratorAftermath = handlingPrefab.GetComponent<LevelGeneratorAftermath>();
 
-			var guiPrefab = GameObject.Find ("GUIPrefab");
+            var guiPrefab = GameObject.Find ("GUIPrefab");
 			ScreenFader = guiPrefab.GetComponent<SceneFadeInOut>();
 		}
 	
@@ -191,11 +202,12 @@ namespace Singleton
                         VRoof = MetalPipeRoof,
                         VExit = VertRedBricksExit,
 
-                        HFloor = HorzRedBricks,
+                        HFloor = HorzRedBricksEnd,
                         HBlock = new List<GameObject> { HorzRedBricks, HorzRedBricksSpec1 },
                         HTransition = HorzRedBricksDoorPrefab,
                         HExit = HorzRedBricksExitPrefab,
-                        HCorner = HorzRedBricksCornerPrefab
+                        HCorner = HorzRedBricksCornerPrefab,
+                        HCrossing = HorzRedBricksCrossingPrefab
                     };
                 }
                 else if (CalculationSingleton.Instance.ActualCreationScope.ActualCampaign == Campaigns.TheSewers)
@@ -213,7 +225,8 @@ namespace Singleton
                         HBlock = new List<GameObject> { HorzSewer },
                         HTransition = HorzSewerDoorPrefab,
                         HExit = HorzSewerExitPrefab,
-                        HCorner = HorzSewerCornerPrefab
+                        HCorner = HorzSewerCornerPrefab,
+                        HCrossing = HorzRedBricksCrossingPrefab
                     };
                 }
 			}
@@ -237,9 +250,35 @@ namespace Singleton
             {
                 // Remeber, if this is a level block
                 CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock = result;
+
+                var lastInfo = CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock != null
+                    ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.GetComponentInChildren<CollisionCheck>()
+                    : null;
+
+                var actualinfo = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentInChildren<CollisionCheck>();
+                if (actualinfo == null)
+                {
+                    Debug.LogWarning("CollisionCheck is NULL for: " + CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.name);
+                }
+                else
+                {
+                    actualinfo.CreationId = lastInfo == null
+                        ? 1
+                        : lastInfo.CreationId + 1;
+                }
+
+                // Set Successor and Predecessor entries!
+                var predecessor = CalculationSingleton.Instance.ActualCreationScope.ActualArea.FirstOrDefault(bl => bl.CollisionInfo.CreationId == (actualinfo.CreationId - 1));
+                if (predecessor != null)
+                {
+                    predecessor.CollisionInfo.Successor = result;
+                    actualinfo.Predecessor = predecessor.LevelBlock;
+                }
+
+                result.name = String.Concat(result.name, " ID: ", actualinfo.CreationId.ToString());
             }
 
-			return result;		
+            return result;		
 		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Enums;
-using Enums;
+﻿using Enums;
 using Singleton;
 using System;
 using UnityEngine;

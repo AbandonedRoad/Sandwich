@@ -95,8 +95,6 @@ namespace Singleton
 
             Debug.Log("Last seed: " + seed.ToString());
 
-            // TODO: Collission detection needed is needed for level block. Seed == 85
-
             return seed;
         }
 

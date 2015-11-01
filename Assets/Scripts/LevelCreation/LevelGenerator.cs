@@ -121,7 +121,7 @@ namespace LevelCreation
                     blockToBeCreated = CalculationSingleton.Instance.ActualCreationScope.AreaInfos.GetHBlock();
                     pos = CalculationSingleton.Instance.ActualCreationScope.CalculatePositionForNextHorizontal(blockToBeCreated);
 					levelBlock = i == 0 
-						? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HFloor, pos)
+						? PrefabSingleton.Instance.Create(CalculationSingleton.Instance.ActualCreationScope.AreaInfos.HStart, pos)
                         : PrefabSingleton.Instance.Create(blockToBeCreated, pos);
                     CalculationSingleton.Instance.ActualCreationScope.CalculateRotationForNextHorizonzalBlock();
                     HelperSingleton.Instance.AdaptPositonForExit();

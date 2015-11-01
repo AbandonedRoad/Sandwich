@@ -23,8 +23,9 @@ namespace LevelCreation
 		public GameObject VTransition {get; set;} 
 		public GameObject VExit {get; set;}
 
-		public GameObject HFloor {get; set;}
+		public GameObject HStart {get; set;}
         public GameObject HCrossing { get; set; }
+        public GameObject HTCrossing { get; set; }
         public List<GameObject> HBlock {get; set;} 
 		public GameObject HTransition {get; set;} 
 		public GameObject HExit {get; set;}

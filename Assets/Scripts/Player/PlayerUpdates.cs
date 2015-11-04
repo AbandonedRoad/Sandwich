@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using Blocks;
+using Enums;
 
 namespace Player
 {
@@ -78,7 +79,7 @@ namespace Player
 				RaycastHit hitInfo;
 				if(Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out hitInfo))
 				{
-                    if (HelperSingleton.Instance.GetTopMostGO(hitInfo.transform.gameObject, true).tag == "Exit")
+                    if (HelperSingleton.Instance.GetTopMostGO(hitInfo.transform.gameObject, true).GetComponentInChildren<BlockDescriptor>().BlockType == LevelBlockType.Exit)
                     {
                         _playerWon = true;
                     }

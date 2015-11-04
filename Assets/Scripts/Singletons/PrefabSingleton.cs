@@ -31,8 +31,8 @@ namespace Singleton
 
         // -- Horz Blocks
         // Red Bricks
-		public GameObject HorzRedBricks {get; private set;}
-        public GameObject HorzRedBricksSpec1 { get; private set; }
+		public List<GameObject> HorzRedBricks {get; private set;}
+        public List<GameObject> HorzRedBricksSpec { get; private set; }
 		public GameObject HorzRedBricksDoorPrefab {get; private set;}
 		public GameObject HorzRedBricksExitPrefab {get; private set;}
 		public GameObject HorzRedBricksStart {get; private set;}
@@ -40,7 +40,7 @@ namespace Singleton
         public GameObject HorzRedBricksCrossingPrefab { get; private set; }
         public GameObject HorzRedBricksTCrossingPrefab { get; private set; }
 
-        public GameObject HorzSewer { get; private set; }
+        public List<GameObject> HorzSewer { get; private set; }
         public GameObject HorzSewerSpec1 { get; private set; }
         public GameObject HorzSewerDoorPrefab { get; private set; }
         public GameObject HorzSewerExitPrefab { get; private set; }
@@ -121,9 +121,11 @@ namespace Singleton
 
 			// Level Parts - Horizontal
             // Red Bricks
-			HorzRedBricks = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksPrefab") as GameObject;
-            HorzRedBricksSpec1 = Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom1Prefab") as GameObject;
-			HorzRedBricksStart = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksStartPrefab") as GameObject;
+			HorzRedBricks = new List<GameObject> { Resources.Load("Prefabs/LevelBlocks/HorzRedBricksPrefab") as GameObject };
+            HorzRedBricks.Add(Resources.Load("Prefabs/LevelBlocks/HorzRedBricksGatePrefab") as GameObject);
+            HorzRedBricksSpec = new List<GameObject> {  Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom1Prefab") as GameObject };
+            HorzRedBricksSpec.Add(Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom2Prefab") as GameObject);
+            HorzRedBricksStart = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksStartPrefab") as GameObject;
 			HorzRedBricksDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksDoorPrefab") as GameObject;
 			HorzRedBricksExitPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksExitPrefab") as GameObject;
             HorzRedBricksCornerPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksCornerPrefab") as GameObject;
@@ -131,7 +133,7 @@ namespace Singleton
             HorzRedBricksTCrossingPrefab = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksTCrossingPrefab") as GameObject;
 
             // Sewer Parts
-            HorzSewer = Resources.Load("Prefabs/LevelBlocks/HorzSewerPrefab") as GameObject;
+            HorzSewer = new List<GameObject> { Resources.Load("Prefabs/LevelBlocks/HorzSewerPrefab") as GameObject };
             HorzSewerSpec1 = Resources.Load("Prefabs/LevelBlocks/HorzSpecRoom1Prefab") as GameObject;
             HorzSewerEnd = Resources.Load("Prefabs/LevelBlocks/HorzRedBricksEndPrefab") as GameObject;
             HorzSewerDoorPrefab = Resources.Load("Prefabs/LevelBlocks/HorzSewerDoorPrefab") as GameObject;
@@ -193,46 +195,46 @@ namespace Singleton
 			int value = Random.Range(0, 1);
 			if (value == 0)
 			{
+                var infos = new AreaInfos();
                 if (CalculationSingleton.Instance.ActualCreationScope.ActualCampaign == Campaigns.TheCellar)
                 {
-                    return new AreaInfos()
-                    {
-                        VFloorDoor = VertRedBricksDoorFloor,
-                        VFloor = VertRedBricksFloor,
-                        VBlock = VertRedBricks,
-                        VTransition = VertRedBricksDoor,
-                        VRoof = MetalPipeRoof,
-                        VExit = VertRedBricksExit,
+                    infos.VFloorDoor = VertRedBricksDoorFloor;
+                    infos.VFloor = VertRedBricksFloor;
+                    infos.VBlock = VertRedBricks;
+                    infos.VTransition = VertRedBricksDoor;
+                    infos.VRoof = MetalPipeRoof;
+                    infos.VExit = VertRedBricksExit;
 
-                        HStart = HorzRedBricksStart,
-                        HBlock = new List<GameObject> { HorzRedBricks, HorzRedBricksSpec1 },
-                        HTransition = HorzRedBricksDoorPrefab,
-                        HExit = HorzRedBricksExitPrefab,
-                        HCorner = HorzRedBricksCornerPrefab,
-                        HCrossing = HorzRedBricksCrossingPrefab,
-                        HTCrossing = HorzRedBricksTCrossingPrefab
-                    };
+                    infos.HStart = HorzRedBricksStart;
+                    infos.HBlock = new List<GameObject>();
+                    infos.HBlock.AddRange(HorzRedBricks);
+                    infos.HBlock.AddRange(HorzRedBricksSpec);
+                    infos.HTransition = HorzRedBricksDoorPrefab;
+                    infos.HExit = HorzRedBricksExitPrefab;
+                    infos.HCorner = HorzRedBricksCornerPrefab;
+                    infos.HCrossing = HorzRedBricksCrossingPrefab;
+                    infos.HTCrossing = HorzRedBricksTCrossingPrefab;
                 }
                 else if (CalculationSingleton.Instance.ActualCreationScope.ActualCampaign == Campaigns.TheSewers)
                 {
-                    return new AreaInfos()
-                    {
-                        VFloorDoor = VertSewerDoorFloor,
-                        VFloor = VertSewerFloor,
-                        VBlock = VertSewer,
-                        VTransition = VertSewerDoor,
-                        VRoof = MetalPipeRoof,
-                        VExit = VertSewerExit,
+                    infos.VFloorDoor = VertSewerDoorFloor;
+                    infos.VFloor = VertSewerFloor;
+                    infos.VBlock = VertSewer;
+                    infos.VTransition = VertSewerDoor;
+                    infos.VRoof = MetalPipeRoof;
+                    infos.VExit = VertSewerExit;
 
-                        HStart = HorzSewer,
-                        HBlock = new List<GameObject> { HorzSewer },
-                        HTransition = HorzSewerDoorPrefab,
-                        HExit = HorzSewerExitPrefab,
-                        HCorner = HorzSewerCornerPrefab,
-                        HCrossing = HorzRedBricksCrossingPrefab,
-                        HTCrossing = HorzRedBricksTCrossingPrefab
-                    };
+                    infos.HStart = HorzSewer.First();
+                    infos.HBlock = new List<GameObject>();
+                    infos.HBlock.AddRange(HorzSewer);
+                    infos.HTransition = HorzSewerDoorPrefab;
+                    infos.HExit = HorzSewerExitPrefab;
+                    infos.HCorner = HorzSewerCornerPrefab;
+                    infos.HCrossing = HorzRedBricksCrossingPrefab;
+                    infos.HTCrossing = HorzRedBricksTCrossingPrefab;
                 }
+
+                return infos;
 			}
 
 			return null;

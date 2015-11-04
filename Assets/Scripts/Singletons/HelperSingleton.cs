@@ -422,7 +422,8 @@ namespace Singleton
                         float newZ = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
                             ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z + difference
                             : CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - difference;
-                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, actPos.y, newZ);
+                        float newY = exitWallPrevExit.transform.position.y - 2.25f;
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, newY, newZ);
                     }
                     else
                     {
@@ -430,7 +431,8 @@ namespace Singleton
                         float newZ = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Right
                             ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z + Math.Abs(exitWallActEntry.transform.localPosition.z)
                             : CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.z - Math.Abs(exitWallPrevExit.transform.localPosition.z);
-                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, actPos.y, newZ);
+                        float newY = exitWallPrevExit.transform.position.y - 2.25f;
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(actPos.x, newY, newZ);
                     }
                 }
             }
@@ -462,7 +464,8 @@ namespace Singleton
                         float newX = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
                             ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x + difference
                             : CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x - difference;
-                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, actPos.y, actPos.z);
+                        float newY = exitWallPrevExit.transform.position.y - 2.25f;
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, newY, actPos.z);
                     }
                     else
                     {
@@ -470,7 +473,8 @@ namespace Singleton
                         float newX = CalculationSingleton.Instance.ActualCreationScope.ActualHorizontalDirection == HorzDirection.Forward
                             ? CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x + Math.Abs(exitWallActEntry.transform.localPosition.z)
                             : CalculationSingleton.Instance.ActualCreationScope.PreviouslyCreatedLevelBlock.transform.position.x - Math.Abs(exitWallActEntry.transform.localPosition.x);
-                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, actPos.y, actPos.z);
+                        float newY = exitWallPrevExit.transform.position.y - 2.25f;
+                        CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.transform.position = new Vector3(newX, newY, actPos.z);
                     }
                 }
             }

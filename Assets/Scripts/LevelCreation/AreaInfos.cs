@@ -9,6 +9,7 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -46,7 +47,9 @@ namespace LevelCreation
             if (range <= borderForDefaultBlock || noSpecials)
             {
                 // Return default block
-                return HBlock[0];
+                var normalBlocks = HBlock.Where(bl => bl.GetComponent<BlockDescriptor>().BlockType == Enums.LevelBlockType.NormalBlock);
+                var blockNo = Random.Range(0, normalBlocks.Count());
+                return normalBlocks.ElementAt(blockNo);
             }
             else
             {

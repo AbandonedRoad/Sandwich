@@ -264,7 +264,7 @@ namespace Singleton
                 var actualinfo = CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.GetComponentInChildren<CollisionCheck>();
                 if (actualinfo == null)
                 {
-                    Debug.LogWarning("CollisionCheck is NULL for: " + CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.name);
+                    Debug.LogError("CollisionCheck is NULL for: " + CalculationSingleton.Instance.ActualCreationScope.ActualCreatedLevelBlock.name);
                 }
                 else
                 {

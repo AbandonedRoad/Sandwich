@@ -96,6 +96,43 @@ namespace Singleton
             PlayersTorch = GameObject.Find("PlayersTorch").GetComponent<PlayerTorch>();
 
             PlayerStepLength = 4f;
-        }	
-	}
+        }
+
+        /// <summary>
+        /// Checks if the current move is allowed
+        /// </summary>
+        public bool IsMoveAllowed(HorzDirection desiredDirection)
+        {
+            Vector3 rayDirection = Vector3.one;
+            switch (desiredDirection)
+            {
+                case HorzDirection.Left:
+                    rayDirection = PlayerSingleton.Instance.Player.transform.right * -1;
+                    break;
+                case HorzDirection.Right:
+                    rayDirection = PlayerSingleton.Instance.Player.transform.right;
+                    break;
+                case HorzDirection.Forward:
+                    rayDirection = PlayerSingleton.Instance.Player.transform.forward;
+                    break;
+                case HorzDirection.Backwards:
+                    rayDirection = PlayerSingleton.Instance.Player.transform.forward * -1;
+                    break;
+            }
+
+            var pos = new Vector3(PlayerSingleton.Instance.Player.transform.position.x, 2.5f, PlayerSingleton.Instance.Player.transform.position.z);
+            var ray = new Ray(pos, rayDirection);
+            RaycastHit info;
+            Physics.Raycast(ray, out info, 4.1f);
+
+            if (info.transform != null
+                && (HelperSingleton.Instance.GetTopMostGO(info.transform.gameObject, true).tag == "LevelBlock"
+                    || HelperSingleton.Instance.GetTopMostGO(info.transform.gameObject, true).tag == "Unpassable"))
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
 }

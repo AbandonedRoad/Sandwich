@@ -12,5 +12,9 @@ public class KeyChecks : MonoBehaviour
         {
             PrefabSingleton.Instance.MenuHandler.SwitchStartPanel();
         }
+        else if (Input.GetKeyDown(KeyCode.I))
+        {
+            PrefabSingleton.Instance.InventoryHandler.SwitchInventory();
+        }
     }
 }

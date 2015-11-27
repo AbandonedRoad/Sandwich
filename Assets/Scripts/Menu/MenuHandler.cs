@@ -13,18 +13,22 @@ using UnityEngine.UI;
 using Singleton;
 using Assets.Scripts.Campaign;
 using Random = UnityEngine.Random;
+using System;
 
 namespace Menu
 {
 	public class MenuHandler : MonoBehaviour
 	{
-		public GameObject Panel 
+        /// <summary>
+        /// The Panel inwhich the menu is
+        /// </summary>
+		public GameObject MainMenuPanel 
 		{
 			get { return _menuPanel; }
 		}
 		
 		private GameObject _menuPanel;
-		private Button _exitButton;
+        private Button _exitButton;
 		private Button _campaignButton;
 		private Button _skirmishButton;
 		private Button _optionsButton;
@@ -37,13 +41,13 @@ namespace Menu
         void Awake()
 		{
 			_menuPanel = GameObject.Find("StartPanel");
-			
-			_campaignButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "CampaignButton");
-			_skirmishButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "SkirmishButton");
-			_optionsButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "OptionsButton");
-			_exitButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "ExitButton");
-            _restartButton = _menuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "RestartButton");
-            _seedInput = _menuPanel.GetComponentsInChildren<Text>().First(inp => inp.name == "SeedInput");
+
+            _campaignButton = MainMenuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "CampaignButton");
+			_skirmishButton = MainMenuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "SkirmishButton");
+			_optionsButton = MainMenuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "OptionsButton");
+			_exitButton = MainMenuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "ExitButton");
+            _restartButton = MainMenuPanel.GetComponentsInChildren<Button>().First(btn => btn.name == "RestartButton");
+            _seedInput = MainMenuPanel.GetComponentsInChildren<Text>().First(inp => inp.name == "SeedInput");
 
             // This is a setup for a button that grabs the field value when pressed
             _campaignButton.onClick.AddListener(() => StartCampaign());
@@ -58,10 +62,10 @@ namespace Menu
 		/// </summary>
 		public void SwitchStartPanel()
 		{
-			_menuPanel.SetActive(!_menuPanel.activeSelf);
-			if (_menuPanel.activeSelf)
+            MainMenuPanel.SetActive(!MainMenuPanel.activeSelf);
+			if (MainMenuPanel.activeSelf)
 			{
-				_menuPanel.transform.SetAsLastSibling();
+                MainMenuPanel.transform.SetAsLastSibling();
 			}
 		}
 

@@ -76,6 +76,7 @@ namespace Singleton
         public LevelGenerator LevelGenerator { get; private set; }
         public LevelGeneratorAftermath LevelGeneratorAftermath { get; private set; }
         public Wait Waiter { get; private set; }
+        public InventoryHandler InventoryHandler { get; private set; }
 
         /// <summary>
         /// Gets instance
@@ -94,10 +95,10 @@ namespace Singleton
 			}
 		}
 
-		/// <summary>
-		/// Init this instance.
-		/// </summary>
-		public void Init ()
+        /// <summary>
+        /// Init this instance.
+        /// </summary>
+        public void Init ()
 		{
             Screams = new Dictionary<int, AudioClip>();
 			Screams.Add(0, Resources.Load("Sounds/Scream1") as AudioClip);
@@ -182,6 +183,7 @@ namespace Singleton
             Waiter = handlingPrefab.GetComponent<Wait>();
             LevelGenerator = handlingPrefab.GetComponent<LevelGenerator>();
             LevelGeneratorAftermath = handlingPrefab.GetComponent<LevelGeneratorAftermath>();
+            InventoryHandler = handlingPrefab.GetComponent<InventoryHandler>();
 
             var guiPrefab = GameObject.Find ("GUIPrefab");
 			ScreenFader = guiPrefab.GetComponent<SceneFadeInOut>();

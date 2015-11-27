@@ -17,6 +17,7 @@ namespace Singleton
         public GameObject Player { get; private set; }
         public PlayerTorch PlayersTorch { get; private set; }
         public HorzDirection FacingDirection { get; set; }
+        public CardinalDirection FacingCardinalDirection { get; set; }
         public BlockInfo ActualBlock { get; set; }
 
         private static PlayerSingleton _instance;
@@ -120,19 +121,44 @@ namespace Singleton
                     break;
             }
 
-            var pos = new Vector3(PlayerSingleton.Instance.Player.transform.position.x, 2.5f, PlayerSingleton.Instance.Player.transform.position.z);
+            var pos = new Vector3(Player.transform.position.x, Player.transform.position.y + 1.5f, Player.transform.position.z);
             var ray = new Ray(pos, rayDirection);
             RaycastHit info;
             Physics.Raycast(ray, out info, 4.1f);
 
-            if (info.transform != null
-                && (HelperSingleton.Instance.GetTopMostGO(info.transform.gameObject, true).tag == "LevelBlock"
-                    || HelperSingleton.Instance.GetTopMostGO(info.transform.gameObject, true).tag == "Unpassable"))
+            if (info.transform == null
+                || info.transform.gameObject.tag == "Passable")
             {
-                return false;
+                // Nothing in the way, or something is in the way, but it is on the white list.
+                return true;
             }
+            else
+            {
+                if (info.transform.gameObject.tag == "RenderObject")
+                {
+                    // Seems to be an unpassble zone. But check if it is on the same height as we are!
+                    var size = HelperSingleton.Instance.GetSize(info.transform.gameObject, false);
 
-            return true;
+                    if ((info.transform.position.y - (size.z / 2)) > Player.transform.position.y  // <-- It' above us.
+                        || (size.z + info.transform.position.y - (size.z / 2)) < Player.transform.position.y)  // <-- It' below  us.
+                    {
+                        // Its either below us, or above us
+                        return true;
+                    }
+
+                    // Its in the way.
+                    return false;
+                }
+
+                if (HelperSingleton.Instance.GetTopMostGO(info.transform.gameObject, true).tag == "LevelBlock"
+                    || HelperSingleton.Instance.GetTopMostGO(info.transform.gameObject, true).tag == "Unpassable")
+                {
+                    // End of level reached, or object is on teh black list.
+                    return false;
+                }
+
+                return true;
+            }
         }
     }
 }

@@ -38,7 +38,9 @@ namespace Player
 			_audioSourcesBone = this.gameObject.AddComponent(typeof(AudioSource)) as AudioSource;
 			_audioSourcesMisc = this.gameObject.AddComponent(typeof(AudioSource)) as AudioSource;
 			_coinsText = GameObject.Find("CoinText").GetComponent<Text>();
-		}
+
+            CreateHearts();
+        }
 
 		/// <summary>
 		/// Update this instance.
@@ -58,9 +60,9 @@ namespace Player
                 }
 				_audioSourcesScream.PlayOneShot(PrefabSingleton.Instance.Screams[scream]);
 
-				CreateHearts();
+                CreateHearts();
 
-				_actualHealth = PlayerSingleton.Instance.PlayerHealth;
+                _actualHealth = PlayerSingleton.Instance.PlayerHealth;
 			}
 
 			if (_actualHealth <= 0 && !PrefabSingleton.Instance.ScreenFader.IsBlack)
@@ -70,7 +72,7 @@ namespace Player
 			}
 
             // Update Label for Coins.
-			_coinsText.text = PlayerSingleton.Instance.CoinAmount.ToString();
+            _coinsText.text = PlayerSingleton.Instance.CoinAmount.ToString();
 
             // Check User input.
 			if (Input.GetKeyDown(KeyCode.Return))
@@ -145,14 +147,17 @@ namespace Player
 			float distanceBetween = 5;
 
 			int heartNumber = 1;
+            int distance = 50;
 			for (int loop = 0; loop < PlayerSingleton.Instance.PlayerHealth; loop++) 
 			{
 				GameObject heartFull = GameObject.Instantiate(PrefabSingleton.Instance.HeartFull) as GameObject;
 				heartFull.tag = "Heart";
 				var rectTransform = heartFull.GetComponent<RectTransform>();
-				var pos = new Vector3(((heartNumber * rectTransform.sizeDelta.y) + distanceBetween) * -1,
-				                      rectTransform.sizeDelta.x * -1, 
-				                      0);
+                rectTransform.anchorMin = new Vector2(0, 1);
+                rectTransform.anchorMax = new Vector2(0, 1);
+                var pos = new Vector3(((heartNumber * rectTransform.sizeDelta.y) + distanceBetween + distance) ,
+				                      (rectTransform.sizeDelta.x + 5) * -1,
+                                      0);
 				rectTransform.position = pos;
 				heartFull.transform.SetParent(canvas.transform, false);
 				_playerHearts.Add(heartFull);
@@ -164,8 +169,10 @@ namespace Player
 				GameObject heartEmpty = GameObject.Instantiate(PrefabSingleton.Instance.HeartEmpty) as GameObject;
 				heartEmpty.tag = "Heart";
 				var rectTransform = heartEmpty.GetComponent<RectTransform>();
-				var pos = new Vector3(((heartNumber * rectTransform.sizeDelta.y) + distanceBetween) * -1,
-				                      rectTransform.sizeDelta.x * -1, 
+                rectTransform.anchorMin = new Vector2(0, 1);
+                rectTransform.anchorMax = new Vector2(0, 1);
+                var pos = new Vector3(((heartNumber * rectTransform.sizeDelta.y) + distanceBetween + distance),
+				                      (rectTransform.sizeDelta.x + 5) * -1, 
 				                      0);
 				rectTransform.position = pos;
 				heartEmpty.transform.SetParent(canvas.transform, false);
